@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PincelArt - Iniciar Sesión</title>
+    <link rel="stylesheet" href="login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-background"></div>
+        
+        <div class="login-box">
+            <div class="login-header">
+                <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="login-logo">
+                <h1>PincelArt Amazonía</h1>
+                <p>Productos personalizados con esencia amazónica</p>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div id="login-form" class="form-container active">
+                <h2>Iniciar Sesión</h2>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label for="loginEmail">Correo Electrónico</label>
+                        <input type="email" id="loginEmail" name="email" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="loginPassword">Contraseña</label>
+                        <input type="password" id="loginPassword" name="password" required>
+                    </div>
+                    
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            Recordarme
+                        </label>
+                        <a href="#" id="forgotPasswordLink" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">Iniciar Sesión</button>
+                    
+                    <div class="form-switch">
+                        <p>¿No tienes cuenta? <a href="#" id="showRegister">Regístrate aquí</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div id="register-form" class="form-container">
+                <h2>Crear Cuenta</h2>
+                <form id="registerForm">
+                    <div class="input-group">
+                        <label for="registerName">Nombre Completo</label>
+                        <input type="text" id="registerName" name="name" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="registerEmail">Correo Electrónico</label>
+                        <input type="email" id="registerEmail" name="email" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="registerPhone">Teléfono</label>
+                        <input type="tel" id="registerPhone" name="phone" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="registerPassword">Contraseña</label>
+                        <input type="password" id="registerPassword" name="password" required minlength="6">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="confirmPassword">Confirmar Contraseña</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="acceptTerms" required>
+                            <span class="checkmark"></span>
+                            Acepto los <a href="#" class="terms-link">términos y condiciones</a>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn-register">Crear Cuenta</button>
+                    
+                    <div class="form-switch">
+                        <p>¿Ya tienes cuenta? <a href="#" id="showLogin">Inicia sesión aquí</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Formulario de Recuperar Contraseña -->
+            <div id="forgot-form" class="form-container">
+                <h2>Recuperar Contraseña</h2>
+                <form id="forgotForm">
+                    <div class="input-group">
+                        <label for="forgotEmail">Correo Electrónico</label>
+                        <input type="email" id="forgotEmail" name="email" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-forgot">Enviar Código de Recuperación</button>
+                    
+                    <div class="form-switch">
+                        <p><a href="#" id="backToLogin">← Volver al inicio de sesión</a></p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mensajes de estado -->
+            <div id="message-container" class="message-container"></div>
+        </div>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>
+

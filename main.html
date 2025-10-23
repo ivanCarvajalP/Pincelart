@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PincelArt - Productos Amazónicos Personalizados</title>
+    <link rel="stylesheet" href="style.css?v=20250103">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header y Navegación -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="logo-img">
+                <div class="logo-text">
+                    <h1>PincelArt</h1>
+                    <p>Productos personalizados con esencia amazónica</p>
+                </div>
+            </div>
+            <nav class="nav">
+                <a href="#inicio">Inicio</a>
+                <a href="#productos">Productos</a>
+                <a href="#carrito" id="nav-carrito">🛒 Carrito (<span id="carrito-count">0</span>)</a>
+                <a href="#favoritos" id="nav-favoritos">❤️ Favoritos (<span id="favoritos-count">0</span>)</a>
+                <a href="#contacto">Contacto</a>
+                <span class="user-info">
+                    <span class="user-name">Usuario</span>
+                    <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                </span>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sección Hero -->
+    <section id="inicio" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-logo">
+                    <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="hero-logo-img">
+                </div>
+                <div class="hero-text">
+                    <h1>PincelArt</h1>
+                    <h2>Artesanía Auténtica de la Amazonía</h2>
+                    <p class="hero-description">Somos una empresa dedicada a la creación de productos artesanales únicos que capturan la esencia y belleza de la Amazonía. Nuestros productos personalizados combinan la tradición ancestral con el diseño contemporáneo, ofreciendo piezas únicas que cuentan la historia de nuestra tierra.</p>
+                </div>
+    </section>
+
+    <!-- Sección Conócenos -->
+    <section class="conocenos">
+        <div class="container">
+            <div class="conocenos-content">
+                <div class="conocenos-text">
+                    <h2>Conócenos</h2>
+                    <p>PincelArt nació del amor por la Amazonía y el deseo de preservar las tradiciones artesanales de nuestra región. Cada producto que creamos es una obra de arte que refleja la riqueza cultural y natural de la selva amazónica.</p>
+                    <p>Nuestro equipo de artesanos locales trabaja con técnicas ancestrales transmitidas de generación en generación, utilizando materiales naturales y sostenibles que respetan el medio ambiente.</p>
+                </div>
+                <div class="conocenos-image">
+                    <img src="images/FondoPagina/FondoPaginaWeb.jpg" alt="Amazonía" class="conocenos-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Visión y Misión -->
+    <section id="vision-mision" class="vision-mision">
+        <div class="container">
+            <div class="vision-mision-content">
+                <div class="mision">
+                    <div class="mision-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                            </div>
+                    <h3>Misión</h3>
+                        <p>La misión de Pincelart es crear, promover y comercializar artesanías personalizadas pintadas a mano que rescaten y difundan la riqueza cultural de la Amazonía. Nuestro propósito es transformar productos cotidianos como camisas, bolsos, ponchos y sombreros en piezas de arte únicas que representen la identidad regional, generando valor tanto para quienes los adquieren como para la comunidad que los produce. A través de la creatividad, la autenticidad y el respeto por las tradiciones, buscamos preservar los saberes ancestrales, impulsar el talento artesanal y fomentar un consumo responsable y sostenible. Al mismo tiempo, trabajamos para ofrecer a nuestros clientes experiencias significativas que les permitan sentirse conectados con la cultura amazónica, fortaleciendo la identidad local y contribuyendo al desarrollo económico, social y cultural de la región.</p>
+                        </div>
+                <div class="vision">
+                    <div class="vision-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                            </div>
+                    <h3>Visión</h3>
+                        <p>La visión actual de Pincelart desde este año 2025 al 2030, es que la empresa sea reconocida a nivel nacional como una marca líder en artesanías personalizadas amazónicas, con presencia en las principales ferias culturales y turísticas del país y una sólida plataforma digital que permita llegar a clientes en diferentes regiones de Colombia. La empresa se habrá consolidado como un referente de innovación cultural, combinando tradición y creatividad en cada uno de sus productos, y generando oportunidades de empleo digno para artesanos locales. Nuestro portafolio se habrá diversificado con nuevas líneas de productos y alianzas estratégicas con el sector turístico y cultural, lo que nos permitirá no solo aumentar nuestra participación en el mercado, sino también fortalecer el impacto social y cultural en la región. Pincelart será una empresa sostenible, reconocida por transformar la identidad amazónica en arte y por contribuir al desarrollo económico y cultural de las comunidades que hacen parte de su esencia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Productos -->
+    <section id="productos" class="productos">
+        <div class="container">
+            <div class="seccion-header">
+                <h2>Nuestro Catálogo de Productos</h2>
+            </div>
+            
+            <!-- Filtros de Categorías -->
+            <div class="filtros-categorias">
+                <button class="filtro-btn active" data-categoria="todos">Todos</button>
+                <button class="filtro-btn" data-categoria="ropa">Ropa</button>
+                <button class="filtro-btn" data-categoria="accesorios">Accesorios</button>
+                <button class="filtro-btn" data-categoria="hogar">Hogar</button>
+            </div>
+
+            <!-- Grid de Productos -->
+            <div class="grid-productos">
+                
+                <!-- ROPA -->
+                <div class="producto-card" data-categoria="ropa" data-producto="guayabera">
+                    <div class="producto-img">
+                        <img src="images/productos/Ropa/Guayabera/guayaberaFem1.jpg" alt="Guayaberas" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Guayaberas</h3>
+                    <p>Elegancia y tradición amazónica en cada puntada. Perfectas para ocasiones especiales.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$65.000</span>
+                        <span class="categoria">Ropa</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="guayabera">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="guayabera">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="guayabera">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="guayabera">Ver Más Guayaberas</button>
+                </div>
+
+                <div class="producto-card" data-categoria="ropa" data-producto="buso">
+                    <div class="producto-img">
+                        <img src="images/productos/Ropa/BusosHombre/busoMas1.jpg" alt="Busos" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Busos</h3>
+                    <p>Comodidad y estilo con diseños únicos de la Amazonía. Ideales para el día a día.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$35.000</span>
+                        <span class="categoria">Ropa</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="buso">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="buso">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="buso">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="buso">Ver Más Busos</button>
+                </div>
+
+                <div class="producto-card" data-categoria="ropa" data-producto="conjunto">
+                    <div class="producto-img">
+                        <img src="images/productos/Ropa/ConjuntoAmazonico/conjuntoAmazonicoFem1.jpg" alt="Conjunto Amazónico" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Conjunto Amazónico</h3>
+                    <p>Set completo tradicional con camisa y pantalón. Autenticidad amazónica en cada pieza.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$120.000</span>
+                        <span class="categoria">Ropa</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="conjunto">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="conjunto">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="conjunto">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="conjunto">Ver Más Conjuntos</button>
+                </div>
+
+                <!-- ACCESORIOS -->
+                <div class="producto-card" data-categoria="accesorios" data-producto="chapa">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Chapas/chapa1.jpg" alt="Chapas" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Chapas</h3>
+                    <p>Diseño único para ti. Personalizamos con tu nombre, logo o diseño especial.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$45.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="chapa">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="chapa">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="chapa">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="chapa">Ver Más Chapas</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="poncho">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Ponchos/poncho1.jpg" alt="Ponchos" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Ponchos</h3>
+                    <p>Abrigo tradicional con diseños auténticos amazónicos. Calidad y tradición.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$85.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="poncho">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="poncho">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="poncho">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="poncho">Ver Más Ponchos</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="gorra">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Gorras/gorra1.jpg" alt="Gorras" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Gorras</h3>
+                    <p>Estilo y protección con diseños únicos amazónicos. Perfectas para el día a día.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="gorra">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="gorra">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="gorra">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="gorra">Ver Más Gorras</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="sombrero">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Sombreros/sombrero1.jpg" alt="Sombreros" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Sombreros</h3>
+                    <p>Protección del sol con elegancia artesanal. Hechos con materiales naturales.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="sombrero">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="sombrero">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="sombrero">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="sombrero">Ver Más Sombreros</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="bolso">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Bolsos/bolso1.jpg" alt="Bolsos" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Bolsos</h3>
+                    <p>Prácticos y resistentes para tus aventuras. Diseños únicos amazónicos.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="bolso">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="bolso">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="bolso">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="bolso">Ver Más Bolsos</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="monedero">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Monederos/monedero1.jpg" alt="Monederos" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Monederos</h3>
+                    <p>Elegancia artesanal para el día a día. Diseños únicos de la Amazonía.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="monedero">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="monedero">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="monedero">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="monedero">Ver Más Monederos</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="porta-celular">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/PortaCelulares/portaCelular1.jpg" alt="Porta Celular" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Porta Celular</h3>
+                    <p>Protege tu dispositivo con estilo. Diseño amazónico clásico.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="porta-celular">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="porta-celular">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="porta-celular">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="porta-celular">Ver Más Porta Celulares</button>
+                </div>
+
+                <!-- ACCESORIOS ADICIONALES -->
+                <div class="producto-card" data-categoria="accesorios" data-producto="arete">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Aretes/arete1.jpg" alt="Aretes" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Aretes</h3>
+                    <p>Elegancia artesanal para realzar tu belleza. Diseños únicos amazónicos.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="arete">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="arete">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="arete">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="arete">Ver Más Aretes</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="arete-collar">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/AreteCollar/areteCollar1.jpg" alt="Arete Collar" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Arete Collar</h3>
+                    <p>Conjunto elegante de aretes y collar. Perfecto para ocasiones especiales.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="arete-collar">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="arete-collar">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="arete-collar">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="arete-collar">Ver Más Arete Collares</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="iman-nevera">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/ImanNevera/imanNevera1.jpg" alt="Imán Nevera" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Imán Nevera</h3>
+                    <p>Decora tu cocina con diseños amazónicos únicos. Imanes personalizados.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="iman-nevera">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="iman-nevera">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="iman-nevera">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="iman-nevera">Ver Más Imanes</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="monia">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Monias/monia1.jpg" alt="Monias" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Moñas</h3>
+                    <p>Accesorios tradicionales con diseños auténticos amazónicos.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="monia">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="monia">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="monia">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="monia">Ver Más Moñas</button>
+                </div>
+
+                <div class="producto-card" data-categoria="accesorios" data-producto="pulsera">
+                    <div class="producto-img">
+                        <img src="images/productos/accesorios/Pulsera/pulsera1.jpg" alt="Pulseras" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Pulseras</h3>
+                    <p>Elegancia en tu muñeca con diseños únicos amazónicos. Artesanía auténtica.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$25.000</span>
+                        <span class="categoria">Accesorios</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="pulsera">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="pulsera">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="pulsera">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="pulsera">Ver Más Pulseras</button>
+                </div>
+
+                <!-- HOGAR -->
+                <div class="producto-card" data-categoria="hogar" data-producto="cuadro">
+                    <div class="producto-img">
+                        <img src="images/productos/hogar/Cuadros/cuadro1.jpg" alt="Cuadros" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Cuadros</h3>
+                    <p>Arte amazónico para tu hogar. Paisajes y cultura en cada obra.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$75.000</span>
+                        <span class="categoria">Hogar</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="cuadro">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="cuadro">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="cuadro">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="cuadro">Ver Más Cuadros</button>
+                </div>
+
+                <div class="producto-card" data-categoria="hogar" data-producto="pocillo">
+                    <div class="producto-img">
+                        <img src="images/productos/hogar/Pocillos/pocillo1.jpg" alt="Pocillos" class="imagen-producto">
+                        <div class="overlay">
+                            <button class="btn-ver">Ver Detalles</button>
+                        </div>
+                    </div>
+                    <h3>Pocillos</h3>
+                    <p>Para tu café mañanero con diseños amazónicos únicos. Calidad y tradición.</p>
+                    <div class="precio-categoria">
+                        <span class="precio">$75.000</span>
+                        <span class="categoria">Hogar</span>
+                    </div>
+                    <div class="producto-acciones">
+                        <button class="btn-carrito" data-producto="pocillo">🛒 Carrito</button>
+                        <button class="btn-compra" data-producto="pocillo">💳 Comprar</button>
+                        <button class="btn-favorito" data-producto="pocillo">❤️ Favorito</button>
+                    </div>
+                    <button class="btn-ver-mas-producto" data-tipo="pocillo">Ver Más Pocillos</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección Contacto -->
+    <section id="contacto" class="contacto">
+        <div class="container">
+            <h2>Contáctanos para Personalizar</h2>
+            <div class="contacto-info">
+                <div class="contacto-item">
+                    <div class="contacto-qr">
+                        <img src="images/contacto/whatsapp-qr.jpg" alt="QR WhatsApp" class="qr-image">
+                    </div>
+                    <h3>📱 WhatsApp</h3>
+                    <p><a href="https://wa.me/+573104589577" target="_blank">+57 310 458 9577</a></p>
+                    <small>Para pedidos personalizados</small>
+                </div>
+                
+                <div class="contacto-item">
+                    <div class="contacto-qr">
+                        <img src="images/contacto/tiktok-qr.jpg" alt="QR TikTok" class="qr-image">
+                    </div>
+                    <h3>🎵 TikTok</h3>
+                    <p><a href="https://www.tiktok.com/@angelapatriapincelart" target="_blank">@angelapatriapincelart</a></p>
+                    <small>Síguenos para ver nuestros productos</small>
+                </div>
+                
+                <div class="contacto-item">
+                    <div class="contacto-qr">
+                        <img src="images/contacto/instagram-qr.jpg" alt="QR Instagram" class="qr-image">
+                    </div>
+                    <h3>📸 Instagram</h3>
+                    <p><a href="https://www.instagram.com/artesaniapincelart" target="_blank">@artesaniapincelart</a></p>
+                    <small>Galería de productos</small>
+                </div>
+                
+                <div class="contacto-item">
+                    <div class="contacto-qr">
+                        <img src="images/contacto/facebook-qr.jpg" alt="QR Facebook" class="qr-image">
+                    </div>
+                    <h3>👥 Facebook</h3>
+                    <p><a href="https://www.facebook.com/share/14MFaUT5uEG/" target="_blank">PincelArt Amazonía</a></p>
+                    <small>Conecta con nosotros</small>
+                </div>
+                
+                <div class="contacto-item">
+                    <h3>📍 Envíos</h3>
+                    <p>Todo Colombia</p>
+                    <small>Despachamos a todo el país</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 🛒 Carrito -->
+    <section id="carrito" class="carrito">
+        <div class="container">
+            <div class="seccion-header">
+                <button class="btn-volver" onclick="mostrarSeccion('productos')">← Volver al Catálogo</button>
+                <h2>Mi 🛒 Carrito de Compras</h2>
+            </div>
+            <div class="carrito-contenido">
+                <div class="carrito-vacio">
+                    <p>Tu carrito está vacío</p>
+                    <button class="btn-volver" onclick="mostrarSeccion('productos')">Ver Productos</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección ❤️ Favoritos -->
+    <section id="favoritos" class="favoritos">
+        <div class="container">
+            <div class="seccion-header">
+                <button class="btn-volver" onclick="mostrarSeccion('productos')">← Volver al Catálogo</button>
+                <h2>❤️ Mis Productos Favoritos</h2>
+            </div>
+            <div class="favoritos-contenido">
+                <div class="favoritos-vacio">
+                    <p>No tienes productos favoritos</p>
+                    <button class="btn-volver" onclick="mostrarSeccion('productos')">Ver Productos</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal para Ver Más Productos -->
+    <div id="modal-productos" class="modal-productos">
+        <div class="modal-contenido">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Productos</h3>
+                <button class="modal-cerrar" id="modal-cerrar">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 PincelArt - Productos Amazónicos Personalizados</p>
+        </div>
+    </footer>
+
+    <script src="script.js?v=20250103"></script>
+</body>
+</html>
