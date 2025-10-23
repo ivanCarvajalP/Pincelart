@@ -824,20 +824,24 @@ body {
 .menu-toggle {
     display: none;
     flex-direction: column;
-    background: none;
-    border: none;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     cursor: pointer;
     padding: 10px;
     z-index: 1001;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
 .menu-toggle span {
     width: 25px;
     height: 3px;
-    background: #2e7d32;
+    background: #ffffff;
     margin: 3px 0;
     transition: 0.3s;
     border-radius: 2px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .menu-toggle.active span:nth-child(1) {
