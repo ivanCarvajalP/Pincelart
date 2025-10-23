@@ -1403,4 +1403,59 @@ function procederCompra() {
     mostrarNotificacion('Función de compra en desarrollo', 'info');
 }
 
+// Función para inicializar el menú hamburguesa
+function initMenuHamburguesa() {
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    const navLinks = document.querySelectorAll('.nav a');
+    
+    if (!menuToggle || !navMenu) return;
+    
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'nav-overlay';
+    document.body.appendChild(overlay);
+    
+    // Toggle menú
+    menuToggle.addEventListener('click', function() {
+        menuToggle.classList.toggle('active');
+        navMenu.classList.toggle('active');
+        overlay.classList.toggle('active');
+        document.body.style.overflow = navMenu.classList.contains('active') ? 'hidden' : '';
+    });
+    
+    // Cerrar menú al hacer clic en overlay
+    overlay.addEventListener('click', function() {
+        menuToggle.classList.remove('active');
+        navMenu.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    // Cerrar menú al hacer clic en enlaces
+    navLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            menuToggle.classList.remove('active');
+            navMenu.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+    
+    // Cerrar menú con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+            menuToggle.classList.remove('active');
+            navMenu.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+// Inicializar menú hamburguesa cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    initMenuHamburguesa();
+});
+
 // Los botones de compra ya están manejados en initEcommerce()
