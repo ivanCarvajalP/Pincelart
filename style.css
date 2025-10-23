@@ -841,6 +841,7 @@ body {
         align-items: center;
         gap: 0.5rem;
         flex: 1;
+        justify-content: center;
     }
     
     .logo-img {
@@ -852,6 +853,8 @@ body {
     .logo-text h1 {
         font-size: 1.2rem;
         margin: 0;
+        text-align: center;
+        width: 100%;
     }
     
     .logo-text p {
