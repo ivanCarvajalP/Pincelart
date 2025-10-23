@@ -177,7 +177,7 @@ body {
     margin-bottom: 0.5rem;
     line-height: 1.1;
     text-align: center;
-    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57, #ff9ff3, #54a0ff);
+    background: linear-gradient(45deg, #ff1744, #e91e63, #9c27b0, #673ab7, #3f51b5, #2196f3, #00bcd4);
     background-size: 400% 400%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -383,11 +383,37 @@ body {
     font-family: 'Merriweather', serif;
     font-size: 2.5rem;
     margin-bottom: 3rem;
-    background: linear-gradient(45deg, #2e7d32, #d32f2f, #1976d2);
+    background: linear-gradient(45deg, #ff1744, #e91e63, #9c27b0, #673ab7, #3f51b5, #2196f3, #00bcd4);
+    background-size: 400% 400%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+    display: inline-block;
+    width: auto;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    background-color: rgba(0, 0, 0, 0.9);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: chispeado 3s ease-in-out infinite;
+}
+
+@keyframes chispeado {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 /* Header de sección de productos */
@@ -1081,6 +1107,24 @@ body {
     .productos .seccion-header h2 {
         font-size: 2rem;
         text-align: center;
+    }
+    
+    .productos h2 {
+        font-size: 2rem;
+        text-align: center;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(45deg, #ff1744, #e91e63, #9c27b0, #673ab7, #3f51b5, #2196f3, #00bcd4);
+        background-size: 400% 400%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        background-color: rgba(0, 0, 0, 0.9);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        animation: chispeado 3s ease-in-out infinite;
     }
     
     .filtros {
