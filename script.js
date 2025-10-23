@@ -1434,11 +1434,26 @@ function initMenuHamburguesa() {
     
     // Cerrar menú al hacer clic en enlaces
     navLinks.forEach(link => {
-        link.addEventListener('click', function() {
+        link.addEventListener('click', function(e) {
+            // Cerrar menú
             menuToggle.classList.remove('active');
             navMenu.classList.remove('active');
             overlay.classList.remove('active');
             document.body.style.overflow = '';
+            
+            // Si es el enlace de productos, hacer scroll suave
+            if (link.getAttribute('href') === '#productos') {
+                e.preventDefault();
+                setTimeout(() => {
+                    const productosSection = document.getElementById('productos');
+                    if (productosSection) {
+                        productosSection.scrollIntoView({ 
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                }, 300);
+            }
         });
     });
     
