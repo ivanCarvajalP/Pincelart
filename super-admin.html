@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PincelArt - Super Administración</title>
+    <link rel="stylesheet" href="super-admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header del Super Admin -->
+    <header class="super-admin-header">
+        <div class="super-admin-header-content">
+            <div class="super-admin-logo">
+                <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="super-admin-logo-img">
+                <div class="super-admin-logo-text">
+                    <h1>PincelArt Super Admin</h1>
+                    <p>Panel de Control Maestro</p>
+                </div>
+            </div>
+            
+            <div class="super-admin-user-info">
+                <span class="super-admin-user-name" id="superAdminUserName">Super Usuario</span>
+                <div class="super-admin-user-actions">
+                    <button class="btn-super-admin btn-secondary" onclick="irATienda()">
+                        <i class="fas fa-store"></i> Ver Tienda
+                    </button>
+                    <button class="btn-super-admin btn-danger" onclick="cerrarSesionSuperAdmin()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navegación del Super Admin -->
+    <nav class="super-admin-nav">
+        <div class="super-admin-nav-content">
+            <button class="nav-btn active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-btn" data-section="usuarios">
+                <i class="fas fa-users-cog"></i>
+                <span>Gestión de Usuarios</span>
+            </button>
+            <button class="nav-btn" data-section="productos">
+                <i class="fas fa-box"></i>
+                <span>Todos los Productos</span>
+            </button>
+            <button class="nav-btn" data-section="ventas">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Ventas Globales</span>
+            </button>
+            <button class="nav-btn" data-section="reportes">
+                <i class="fas fa-chart-line"></i>
+                <span>Reportes Avanzados</span>
+            </button>
+            <button class="nav-btn" data-section="configuracion">
+                <i class="fas fa-cogs"></i>
+                <span>Configuración</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="super-admin-main">
+        <!-- Dashboard -->
+        <section id="dashboard" class="super-admin-section active">
+            <div class="section-header">
+                <h2>Dashboard Super Admin</h2>
+                <div>
+                    <p>Control total del sistema PincelArt</p>
+                    <button class="btn-super-admin btn-warning" onclick="iniciarMigracion()" style="margin-top: 0.5rem;">
+                        <i class="fas fa-database"></i> Migrar a Firebase
+                    </button>
+                </div>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card super-stat">
+                    <div class="stat-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalUsuarios">0</h3>
+                        <p>Total Usuarios</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card super-stat">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalVendedores">0</h3>
+                        <p>Vendedores Activos</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card super-stat">
+                    <div class="stat-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalProductos">0</h3>
+                        <p>Total Productos</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card super-stat">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="ventasTotales">$0</h3>
+                        <p>Ventas Totales</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-charts">
+                <div class="chart-container">
+                    <h3>Usuarios por Rol</h3>
+                    <canvas id="usuariosChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Productos por Vendedor</h3>
+                    <canvas id="vendedoresChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gestión de Usuarios -->
+        <section id="usuarios" class="super-admin-section">
+            <div class="section-header">
+                <h2>Gestión de Usuarios</h2>
+                <div class="header-actions">
+                    <button class="btn-super-admin btn-secondary" onclick="abrirModalCliente()">
+                        <i class="fas fa-user-plus"></i> Registrar Cliente
+                    </button>
+                    <button class="btn-super-admin btn-primary" onclick="abrirModalVendedor()">
+                        <i class="fas fa-user-tie"></i> Registrar Vendedor
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filtros de Usuarios -->
+            <div class="usuarios-filtros">
+                <div class="filtro-group">
+                    <input type="text" id="buscarUsuario" placeholder="Buscar usuarios..." class="input-search">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="filtro-group">
+                    <select id="filtroRol" class="select-filtro">
+                        <option value="">Todos los roles</option>
+                        <option value="super_usuario">Super Usuario</option>
+                        <option value="vendedor">Vendedor</option>
+                        <option value="cliente">Cliente</option>
+                    </select>
+                </div>
+                
+                <div class="filtro-group">
+                    <select id="filtroEstado" class="select-filtro">
+                        <option value="">Todos los estados</option>
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Tabla de Usuarios -->
+            <div class="usuarios-table-container">
+                <table class="usuarios-table">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Fecha Creación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuariosTableBody">
+                        <!-- Usuarios se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Todos los Productos -->
+        <section id="productos" class="super-admin-section">
+            <div class="section-header">
+                <h2>Todos los Productos del Sistema</h2>
+            </div>
+            
+            <!-- Filtros de Productos -->
+            <div class="productos-filtros">
+                <div class="filtro-group">
+                    <input type="text" id="buscarProductoGlobal" placeholder="Buscar productos..." class="input-search">
+                    <i class="fas fa-search"></i>
+                </div>
+                
+                <div class="filtro-group">
+                    <select id="filtroVendedor" class="select-filtro">
+                        <option value="">Todos los vendedores</option>
+                        <!-- Se llenará dinámicamente -->
+                    </select>
+                </div>
+                
+                <div class="filtro-group">
+                    <select id="filtroCategoriaGlobal" class="select-filtro">
+                        <option value="">Todas las categorías</option>
+                        <option value="ropa">Ropa</option>
+                        <option value="accesorios">Accesorios</option>
+                        <option value="hogar">Hogar</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Tabla de Productos -->
+            <div class="productos-table-container">
+                <table class="productos-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Producto</th>
+                            <th>Vendedor</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productosGlobalesTableBody">
+                        <!-- Productos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Ventas Globales -->
+        <section id="ventas" class="super-admin-section">
+            <div class="section-header">
+                <h2>Ventas Globales</h2>
+            </div>
+            <div class="ventas-content">
+                <p>Módulo de ventas globales en desarrollo...</p>
+            </div>
+        </section>
+
+        <!-- Reportes Avanzados -->
+        <section id="reportes" class="super-admin-section">
+            <div class="section-header">
+                <h2>Reportes Avanzados</h2>
+            </div>
+            <div class="reportes-content">
+                <p>Módulo de reportes avanzados en desarrollo...</p>
+            </div>
+        </section>
+
+        <!-- Configuración -->
+        <section id="configuracion" class="super-admin-section">
+            <div class="section-header">
+                <h2>Configuración del Sistema</h2>
+            </div>
+            <div class="configuracion-content">
+                <p>Módulo de configuración en desarrollo...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal para Registrar Vendedor -->
+    <div id="modalVendedor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Nuevo Vendedor</h3>
+                <button class="modal-close" onclick="cerrarModalVendedor()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formVendedor" class="form-usuario">
+                    <div class="form-info">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Los vendedores pueden gestionar sus propios productos y ver sus estadísticas de ventas.</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vendedorNombre">Nombre Completo *</label>
+                            <input type="text" id="vendedorNombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendedorEmail">Email *</label>
+                            <input type="email" id="vendedorEmail" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vendedorTelefono">Teléfono *</label>
+                            <input type="tel" id="vendedorTelefono" name="telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendedorPassword">Contraseña *</label>
+                            <input type="password" id="vendedorPassword" name="password" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-super-admin btn-secondary" onclick="cerrarModalVendedor()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-super-admin btn-primary">
+                            <i class="fas fa-user-tie"></i> Registrar Vendedor
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Registrar Cliente -->
+    <div id="modalCliente" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Registrar Nuevo Cliente</h3>
+                <button class="modal-close" onclick="cerrarModalCliente()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formCliente" class="form-usuario">
+                    <div class="form-info">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Los clientes pueden comprar productos y agregar artículos a favoritos.</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clienteNombre">Nombre Completo *</label>
+                            <input type="text" id="clienteNombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clienteEmail">Email *</label>
+                            <input type="email" id="clienteEmail" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="clienteTelefono">Teléfono *</label>
+                            <input type="tel" id="clienteTelefono" name="telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="clientePassword">Contraseña *</label>
+                            <input type="password" id="clientePassword" name="password" required minlength="6">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-super-admin btn-secondary" onclick="cerrarModalCliente()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-super-admin btn-secondary">
+                            <i class="fas fa-user-plus"></i> Registrar Cliente
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Usuario -->
+    <div id="modalEditarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalEditarUsuarioTitulo">Editar Usuario</h3>
+                <button class="modal-close" onclick="cerrarModalEditarUsuario()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formEditarUsuario" class="form-usuario">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editarUsuarioNombre">Nombre Completo *</label>
+                            <input type="text" id="editarUsuarioNombre" name="nombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarUsuarioEmail">Email *</label>
+                            <input type="email" id="editarUsuarioEmail" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editarUsuarioTelefono">Teléfono *</label>
+                            <input type="tel" id="editarUsuarioTelefono" name="telefono" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarUsuarioRol">Rol *</label>
+                            <select id="editarUsuarioRol" name="rol" required>
+                                <option value="">Seleccionar rol</option>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="cliente">Cliente</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editarUsuarioPassword">Nueva Contraseña (opcional)</label>
+                            <input type="password" id="editarUsuarioPassword" name="password" minlength="6">
+                            <small>Dejar vacío para mantener la contraseña actual</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="editarUsuarioEstado">Estado</label>
+                            <select id="editarUsuarioEstado" name="estado">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn-super-admin btn-secondary" onclick="cerrarModalEditarUsuario()">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-super-admin btn-primary">
+                            <i class="fas fa-save"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="modalConfirmacion" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3>Confirmar Acción</h3>
+            </div>
+            <div class="modal-body">
+                <p id="confirmacionMensaje">¿Estás seguro de realizar esta acción?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-super-admin btn-secondary" onclick="cerrarModalConfirmacion()">Cancelar</button>
+                <button class="btn-super-admin btn-danger" id="confirmarAccion">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVW9JZsw3ABOiRdzm2mNYi3Kx4y7tbjU4",
+            authDomain: "pincelart-a5a6f.firebaseapp.com",
+            projectId: "pincelart-a5a6f",
+            storageBucket: "pincelart-a5a6f.firebasestorage.app",
+            messagingSenderId: "881733448075",
+            appId: "1:881733448075:web:b8cc09d8029ca0ec73bf8e"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Hacer disponible globalmente
+        window.firebaseApp = app;
+        window.firebaseDB = db;
+        window.firebaseAuth = auth;
+        
+        console.log("🔥 Firebase inicializado en Super Admin!");
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="migration.js"></script>
+    <script src="super-admin.js"></script>
+</body>
+</html>

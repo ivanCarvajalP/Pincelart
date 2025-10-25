@@ -168,13 +168,17 @@ class LoginSystem {
             return;
         }
 
-        // Crear nuevo usuario
+        // Crear nuevo usuario (solo clientes pueden registrarse libremente)
         const newUser = {
             id: Date.now().toString(),
             name: name,
             email: email,
             phone: phone,
             password: password,
+            rol: 'cliente', // Solo clientes pueden registrarse
+            activo: true,
+            permisos: ['comprar', 'ver_productos'], // Permisos de cliente
+            creadoPor: null, // ID del usuario que lo creó
             createdAt: new Date().toISOString(),
             carrito: [],
             favoritos: []

@@ -24,6 +24,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 let carrito = [];
 let favoritos = [];
 let currentUser = null;
+let productos = [];
 
 // Cuando la página carga
 document.addEventListener('DOMContentLoaded', function() {
@@ -31,6 +32,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Verificar si hay usuario logueado
     checkUserSession();
+    
+    // Cargar productos desde localStorage
+    cargarProductos();
     
     // Mostrar todas las secciones por defecto excepto carrito y favoritos
     document.querySelectorAll('section').forEach(section => {
@@ -408,14 +412,28 @@ function comprarAhora(productoId) {
 function obtenerDatosProducto(productoId) {
     console.log('Buscando producto con ID:', productoId);
     
-    // Buscar el producto en todos los tipos
+    // Buscar en el nuevo sistema de productos
+    const producto = productos.find(p => p.id === productoId);
+    if (producto) {
+        console.log('Producto encontrado:', producto);
+        return {
+            id: producto.id,
+            nombre: producto.nombre,
+            precio: `$${producto.precio.toLocaleString()}`,
+            imagen: producto.imagen,
+            descripcion: producto.descripcion,
+            categoria: producto.categoria
+        };
+    }
+    
+    // Fallback al sistema anterior para compatibilidad
     const tipos = ['guayabera', 'buso', 'conjunto', 'cuadro', 'chapa', 'poncho', 'gorra', 'sombrero', 'bolso', 'monedero', 'porta-celular', 'pocillo', 'arete', 'arete-collar', 'iman-nevera', 'monia', 'pulsera'];
     
     for (let tipo of tipos) {
-        const productos = obtenerProductosTipo(tipo);
-        const encontrado = productos.find(p => p.id === productoId);
+        const productosTipo = obtenerProductosTipo(tipo);
+        const encontrado = productosTipo.find(p => p.id === productoId);
         if (encontrado) {
-            console.log('Producto encontrado:', encontrado);
+            console.log('Producto encontrado (sistema anterior):', encontrado);
             return encontrado;
         }
     }
@@ -987,6 +1005,9 @@ function abbreviateName(fullName) {
 function checkUserSession() {
     currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
     
+    // Crear usuario administrador por defecto si no existe
+    crearUsuarioAdminPorDefecto();
+    
     // Si no hay usuario logueado, mostrar página principal sin restricciones
     if (!currentUser) {
         console.log('Usuario no logueado - mostrando página principal');
@@ -1004,6 +1025,58 @@ function checkUserSession() {
     
     // Actualizar interfaz de usuario
     updateUserInterface();
+}
+
+function crearUsuarioAdminPorDefecto() {
+    const users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
+    
+    // Verificar si ya existe un super usuario
+    const superUserExists = users.some(user => user.rol === 'super_usuario');
+    
+    if (!superUserExists) {
+        const superUser = {
+            id: 'super_user_001',
+            name: 'Ivan Dario Carvajal Reina',
+            email: 'pivancarvajal@gmail.com',
+            phone: '3000000000',
+            password: 'super123',
+            rol: 'super_usuario',
+            activo: true,
+            permisos: ['*'], // Todos los permisos
+            creadoPor: 'system',
+            createdAt: new Date().toISOString(),
+            carrito: [],
+            favoritos: []
+        };
+        
+        users.push(superUser);
+        localStorage.setItem('pincelart_users', JSON.stringify(users));
+        console.log('Super Usuario (Ivan Dario) creado por defecto');
+    }
+    
+    // Crear usuario vendedor de ejemplo si no existe
+    const vendedorExists = users.some(user => user.rol === 'vendedor');
+    
+    if (!vendedorExists) {
+        const vendedorUser = {
+            id: 'vendedor_001',
+            name: 'Vendedor Ejemplo',
+            email: 'vendedor@pincelart.com',
+            phone: '3001234567',
+            password: 'vendedor123',
+            rol: 'vendedor',
+            activo: true,
+            permisos: ['gestion_mis_productos', 'ver_mis_ventas', 'ver_mis_estadisticas'],
+            creadoPor: 'super_user_001',
+            createdAt: new Date().toISOString(),
+            carrito: [],
+            favoritos: []
+        };
+        
+        users.push(vendedorUser);
+        localStorage.setItem('pincelart_users', JSON.stringify(users));
+        console.log('Usuario vendedor de ejemplo creado');
+    }
 }
 
 function updateUserInterface() {
@@ -1028,6 +1101,9 @@ function updateUserInterface() {
                 logout();
             };
         }
+        
+        // Mostrar botón de administración si es admin/vendedor
+        mostrarBotonAdmin();
     } else {
         // Usuario no logueado - mostrar opciones de login
         const userNameElement = document.querySelector('.user-name');
@@ -1047,6 +1123,159 @@ function updateUserInterface() {
     
     // Actualizar contadores siempre
     actualizarContadores();
+}
+
+// Sistema de permisos simplificado
+const PERMISOS = {
+    SUPER_USUARIO: ['*'], // Todos los permisos
+    VENDEDOR: ['gestion_mis_productos', 'ver_mis_ventas', 'ver_mis_estadisticas'],
+    CLIENTE: ['comprar', 'ver_productos']
+};
+
+function tienePermiso(permiso) {
+    if (!currentUser) return false;
+    
+    // Super usuario tiene todos los permisos
+    if (currentUser.rol === 'super_usuario' || currentUser.permisos.includes('*')) {
+        return true;
+    }
+    
+    // Verificar permisos específicos
+    return currentUser.permisos.includes(permiso);
+}
+
+function puedeAccederPanelAdmin() {
+    return tienePermiso('gestion_mis_productos') || tienePermiso('gestion_productos') || tienePermiso('gestion_ventas') || tienePermiso('ver_reportes');
+}
+
+function mostrarBotonAdmin() {
+    if (!currentUser || !puedeAccederPanelAdmin()) {
+        return;
+    }
+    
+    // Buscar si ya existe el botón de admin
+    let adminButton = document.querySelector('.btn-admin-panel');
+    if (!adminButton) {
+        // Crear botón de administración
+        adminButton = document.createElement('button');
+        adminButton.className = 'btn-admin-panel';
+        
+        // Personalizar botón según el rol
+        let buttonText = 'Panel';
+        let buttonColor = 'linear-gradient(135deg, #ff9800, #ffb74d)';
+        
+        if (currentUser.rol === 'super_usuario') {
+            buttonText = 'Super Admin';
+            buttonColor = 'linear-gradient(135deg, #d32f2f, #f44336)';
+        } else if (currentUser.rol === 'vendedor') {
+            buttonText = 'Mis Productos';
+            buttonColor = 'linear-gradient(135deg, #2e7d32, #4caf50)';
+        }
+        
+        adminButton.innerHTML = `<i class="fas fa-cog"></i> ${buttonText}`;
+        adminButton.style.cssText = `
+            background: ${buttonColor};
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            margin-left: 10px;
+        `;
+        
+        adminButton.addEventListener('click', () => {
+            // Redirigir según el rol
+            if (currentUser.rol === 'super_usuario') {
+                window.location.href = 'super-admin.html';
+            } else if (currentUser.rol === 'vendedor') {
+                window.location.href = 'vendedor-panel.html';
+            } else {
+                window.location.href = 'admin.html';
+            }
+        });
+        
+        adminButton.addEventListener('mouseenter', () => {
+            adminButton.style.transform = 'translateY(-2px)';
+            adminButton.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.4)';
+        });
+        
+        adminButton.addEventListener('mouseleave', () => {
+            adminButton.style.transform = 'translateY(0)';
+            adminButton.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+        });
+        
+        // Insertar el botón en la navegación
+        const nav = document.querySelector('.nav');
+        if (nav) {
+            nav.appendChild(adminButton);
+        }
+    }
+}
+
+function cargarProductos() {
+    // Cargar productos desde localStorage
+    productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+    
+    // Si no hay productos en localStorage, usar los productos por defecto
+    if (productos.length === 0) {
+        productos = obtenerProductosPorDefecto();
+        localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+    }
+    
+    console.log('Productos cargados:', productos.length);
+}
+
+function obtenerProductosPorDefecto() {
+    return [
+        {
+            id: 'guayabera_001',
+            nombre: 'Guayabera Amazónica Femenina',
+            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
+            categoria: 'ropa',
+            precio: 65000,
+            stock: 15,
+            estado: 'disponible',
+            imagen: 'images/productos/Ropa/Guayabera/guayaberaFem1.jpg',
+            activo: true
+        },
+        {
+            id: 'buso_001',
+            nombre: 'Buso Deportivo Masculino',
+            descripcion: 'Comodidad y estilo con diseños únicos de la Amazonía. Ideales para el día a día.',
+            categoria: 'ropa',
+            precio: 35000,
+            stock: 8,
+            estado: 'disponible',
+            imagen: 'images/productos/Ropa/BusosHombre/busoMas1.jpg',
+            activo: true
+        },
+        {
+            id: 'chapa_001',
+            nombre: 'Chapa Personalizada',
+            descripcion: 'Diseño único para ti. Personalizamos con tu nombre, logo o diseño especial.',
+            categoria: 'accesorios',
+            precio: 45000,
+            stock: 0,
+            estado: 'agotado',
+            imagen: 'images/productos/accesorios/Chapas/chapa1.jpg',
+            activo: true
+        },
+        {
+            id: 'cuadro_001',
+            nombre: 'Cuadro Paisaje Amazónico',
+            descripcion: 'Arte amazónico para tu hogar. Paisajes y cultura en cada obra.',
+            categoria: 'hogar',
+            precio: 75000,
+            stock: 5,
+            estado: 'disponible',
+            imagen: 'images/productos/hogar/Cuadros/cuadro1.jpg',
+            activo: true
+        }
+    ];
 }
 
 function saveUserData() {
@@ -1105,11 +1334,39 @@ function agregarAlCarrito(productoId) {
     
     console.log('Usuario logueado, procediendo con agregar al carrito');
     
+    // Buscar producto en el nuevo sistema
+    const productoCompleto = productos.find(p => p.id === productoId);
+    if (!productoCompleto) {
+        console.log('Producto no encontrado para ID:', productoId);
+        mostrarNotificacion('Producto no encontrado', 'error');
+        return;
+    }
+    
+    // Verificar si el producto está disponible
+    if (productoCompleto.estado !== 'disponible') {
+        mostrarNotificacion('Este producto no está disponible actualmente', 'error');
+        return;
+    }
+    
+    // Verificar stock
+    if (productoCompleto.stock <= 0) {
+        mostrarNotificacion('Este producto está agotado', 'error');
+        return;
+    }
+    
     const producto = obtenerDatosProducto(productoId);
     console.log('Producto encontrado:', producto);
     
     if (producto) {
         const itemExistente = carrito.find(item => item.id === productoId);
+        
+        // Verificar si hay suficiente stock
+        const cantidadSolicitada = itemExistente ? itemExistente.cantidad + 1 : 1;
+        if (cantidadSolicitada > productoCompleto.stock) {
+            mostrarNotificacion(`Solo hay ${productoCompleto.stock} unidades disponibles`, 'error');
+            return;
+        }
+        
         if (itemExistente) {
             itemExistente.cantidad += 1;
         } else {
