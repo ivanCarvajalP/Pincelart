@@ -1612,6 +1612,7 @@ async function cargarProductos() {
         // ==========================================
         console.log('💾 Cargando desde localStorage...');
         productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        console.log(`📊 Productos en localStorage: ${productosTemp.length}`);
         
         // LIMPIAR DUPLICADOS
         const productosUnicos = [];
