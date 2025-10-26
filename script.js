@@ -1616,9 +1616,14 @@ async function cargarProductos() {
         
         // SI hay muy pocos productos (menos de 100), limpiar y cargar desde migración
         if (productosTemp.length > 0 && productosTemp.length < 100) {
-            console.log('⚠️ Detectados pocos productos en localStorage. Limpiando y cargando 166 productos...');
+            console.log('⚠️ Detectados pocos productos en localStorage. Limpiando y recargando...');
             localStorage.removeItem('pincelart_productos');
-            productosTemp = [];
+            // Recargar página automáticamente para cargar los 166 productos
+            console.log('🔄 Recargando página para cargar 166 productos...');
+            setTimeout(() => {
+                window.location.reload();
+            }, 100);
+            return; // Salir temprano para evitar ejecutar el resto del código
         }
         
         // LIMPIAR DUPLICADOS
