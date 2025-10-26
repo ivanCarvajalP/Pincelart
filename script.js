@@ -1625,9 +1625,21 @@ async function cargarProductos() {
         });
         
         if (productosUnicos.length === 0) {
-            console.log('⚠️ No hay productos en localStorage. Cargando productos por defecto...');
-            productosUnicos.push(...obtenerProductosPorDefecto());
-            localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
+            console.log('⚠️ No hay productos en localStorage. Intentando cargar desde migración...');
+            
+            // Intentar cargar desde la función de migración si está disponible
+            if (typeof window.obtenerProductosLocales === 'function') {
+                console.log('✅ Función de migración disponible, cargando productos...');
+                const productosMigrados = window.obtenerProductosLocales();
+                console.log(`📦 ${productosMigrados.length} productos de migración`);
+                productosUnicos.push(...productosMigrados);
+                localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
+                console.log('✅ Productos cargados en localStorage desde migración');
+            } else {
+                console.log('⚠️ Función de migración no disponible. Cargando productos por defecto...');
+                productosUnicos.push(...obtenerProductosPorDefecto());
+                localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
+            }
         } else if (productosTemp.length !== productosUnicos.length) {
             console.log(`🗑️ Eliminando ${productosTemp.length - productosUnicos.length} productos duplicados`);
             localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
