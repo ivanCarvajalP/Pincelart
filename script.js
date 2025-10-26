@@ -308,13 +308,17 @@ function initEcommerce() {
     // Event listeners para botones de carrito y favoritos
     document.addEventListener('click', function(e) {
         console.log('Click detectado en:', e.target);
+        console.log('Clases del elemento:', e.target.classList);
         
         if (e.target.classList.contains('btn-carrito')) {
             const productoCard = e.target.closest('.producto-card');
             if (productoCard) {
                 const productoId = productoCard.dataset.producto;
                 console.log('Botón carrito clickeado, producto ID:', productoId);
+                console.log('Usuario actual:', currentUser);
                 agregarAlCarrito(productoId);
+            } else {
+                console.error('No se encontró .producto-card padre');
             }
         }
         
@@ -392,38 +396,11 @@ function initEcommerce() {
     console.log('E-commerce inicializado correctamente');
 }
 
-function agregarAlCarrito(productoId) {
-    const producto = obtenerDatosProducto(productoId);
-    if (producto) {
-        const itemExistente = carrito.find(item => item.id === productoId);
-        if (itemExistente) {
-            itemExistente.cantidad += 1;
-        } else {
-            carrito.push({ ...producto, cantidad: 1 });
-        }
-        actualizarCarrito();
-        mostrarNotificacion(`${producto.nombre} agregado al carrito`);
-    }
-}
+// Función eliminada - se usa la versión más completa más abajo
 
-function toggleFavorito(productoId) {
-    const producto = obtenerDatosProducto(productoId);
-    if (producto) {
-        const index = favoritos.findIndex(item => item.id === productoId);
-        if (index > -1) {
-            favoritos.splice(index, 1);
-        } else {
-            favoritos.push(producto);
-        }
-        actualizarFavoritos();
-        actualizarBotonFavorito(productoId);
-    }
-}
+// Función eliminada - se usa la versión más completa más abajo
 
-function comprarAhora(productoId) {
-    agregarAlCarrito(productoId);
-    mostrarSeccion('carrito');
-}
+// Función eliminada - se usa la versión más completa más abajo
 
 function obtenerDatosProducto(productoId) {
     console.log('Buscando producto con ID:', productoId);
@@ -442,7 +419,7 @@ function obtenerDatosProducto(productoId) {
         };
     }
     
-    // Fallback al sistema anterior para compatibilidad
+    // Buscar en el sistema anterior para compatibilidad
     const tipos = ['guayabera', 'buso', 'conjunto', 'cuadro', 'chapa', 'poncho', 'gorra', 'sombrero', 'bolso', 'monedero', 'porta-celular', 'pocillo', 'arete', 'arete-collar', 'iman-nevera', 'monia', 'pulsera'];
     
     for (let tipo of tipos) {
@@ -452,6 +429,14 @@ function obtenerDatosProducto(productoId) {
             console.log('Producto encontrado (sistema anterior):', encontrado);
             return encontrado;
         }
+    }
+    
+    // Buscar por tipo (para IDs como 'guayabera', 'buso', etc.)
+    const productosTipo = obtenerProductosTipo(productoId);
+    if (productosTipo && productosTipo.length > 0) {
+        const primerProducto = productosTipo[0];
+        console.log('Producto encontrado por tipo:', primerProducto);
+        return primerProducto;
     }
     
     // Si no se encuentra, crear un producto genérico para evitar errores
@@ -1358,51 +1343,27 @@ function agregarAlCarrito(productoId) {
     
     console.log('Usuario logueado, procediendo con agregar al carrito');
     
-    // Buscar producto en el nuevo sistema
-    const productoCompleto = productos.find(p => p.id === productoId);
-    if (!productoCompleto) {
-        console.log('Producto no encontrado para ID:', productoId);
-        mostrarNotificacion('Producto no encontrado', 'error');
-        return;
-    }
-    
-    // Verificar si el producto está disponible
-    if (productoCompleto.estado !== 'disponible') {
-        mostrarNotificacion('Este producto no está disponible actualmente', 'error');
-        return;
-    }
-    
-    // Verificar stock
-    if (productoCompleto.stock <= 0) {
-        mostrarNotificacion('Este producto está agotado', 'error');
-        return;
-    }
-    
+    // Usar la función obtenerDatosProducto que ya maneja ambos sistemas
     const producto = obtenerDatosProducto(productoId);
     console.log('Producto encontrado:', producto);
     
-    if (producto) {
-        const itemExistente = carrito.find(item => item.id === productoId);
-        
-        // Verificar si hay suficiente stock
-        const cantidadSolicitada = itemExistente ? itemExistente.cantidad + 1 : 1;
-        if (cantidadSolicitada > productoCompleto.stock) {
-            mostrarNotificacion(`Solo hay ${productoCompleto.stock} unidades disponibles`, 'error');
-            return;
-        }
-        
-        if (itemExistente) {
-            itemExistente.cantidad += 1;
-        } else {
-            carrito.push({ ...producto, cantidad: 1 });
-        }
-        actualizarCarrito();
-        saveUserData(); // Guardar datos del usuario
-        mostrarNotificacion(`${producto.nombre} agregado al carrito`, 'success');
-    } else {
+    if (!producto) {
         console.log('Producto no encontrado para ID:', productoId);
         mostrarNotificacion('Producto no encontrado', 'error');
+        return;
     }
+    
+    // Verificar si el producto ya está en el carrito
+    const itemExistente = carrito.find(item => item.id === productoId);
+    if (itemExistente) {
+        itemExistente.cantidad += 1;
+    } else {
+        carrito.push({ ...producto, cantidad: 1 });
+    }
+    
+    actualizarCarrito();
+    saveUserData(); // Guardar datos del usuario
+    mostrarNotificacion(`${producto.nombre} agregado al carrito`, 'success');
 }
 
 function toggleFavorito(productoId) {
