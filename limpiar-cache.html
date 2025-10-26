@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpiar Cache localStorage</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Limpiar Cache y localStorage</h1>
+    <button onclick="limpiarTodo()" style="padding: 20px; font-size: 18px; background: red; color: white; border: none; cursor: pointer;">
+        LIMPIAR TODO (Cache + localStorage)
+    </button>
+    
+    <script>
+        function limpiarTodo() {
+            // Limpiar localStorage
+            localStorage.clear();
+            
+            alert('✅ localStorage limpiado. La página se recargará...');
+            
+            // Recargar página
+            window.location.href = 'main.html';
+        }
+    </script>
+</body>
+</html>
+
