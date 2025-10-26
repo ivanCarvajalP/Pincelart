@@ -274,11 +274,27 @@ function mostrarSeccion(seccion) {
             
             // Si es la sección de carrito, mostrar productos
             if (seccion === 'carrito') {
+                // Verificar si hay usuario logueado
+                if (!currentUser) {
+                    mostrarNotificacion('Debes iniciar sesión para ver tu carrito', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return;
+                }
                 mostrarCarrito();
             }
             
             // Si es la sección de favoritos, mostrar productos
             if (seccion === 'favoritos') {
+                // Verificar si hay usuario logueado
+                if (!currentUser) {
+                    mostrarNotificacion('Debes iniciar sesión para ver tus favoritos', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1500);
+                    return;
+                }
                 mostrarFavoritos();
             }
         }
@@ -438,8 +454,16 @@ function obtenerDatosProducto(productoId) {
         }
     }
     
-    console.log('Producto no encontrado:', productoId);
-    return null;
+    // Si no se encuentra, crear un producto genérico para evitar errores
+    console.warn('Producto no encontrado, creando producto genérico:', productoId);
+    return {
+        id: productoId,
+        nombre: `Producto ${productoId}`,
+        precio: '$0',
+        imagen: 'images/Logo/logo-pincelart.jpg',
+        descripcion: 'Producto no encontrado',
+        categoria: 'desconocida'
+    };
 }
 
 function actualizarCarrito() {
@@ -1470,10 +1494,16 @@ function mostrarCarrito() {
     const carritoContenido = document.querySelector('.carrito-contenido');
     if (!carritoContenido) return;
     
+    console.log('Mostrando carrito, items:', carrito.length);
+    
     if (carrito.length === 0) {
         carritoContenido.innerHTML = `
             <div class="carrito-vacio">
-                <p>Tu carrito está vacío</p>
+                <div class="carrito-vacio-icon">
+                    <i class="fas fa-shopping-cart" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
+                </div>
+                <h3>Tu carrito está vacío</h3>
+                <p>Agrega algunos productos para comenzar tu compra</p>
                 <button class="btn-volver" onclick="mostrarSeccion('productos')">Ver Productos</button>
             </div>
         `;
@@ -1485,6 +1515,11 @@ function mostrarCarrito() {
     
     carrito.forEach(item => {
         const producto = obtenerDatosProducto(item.id);
+        if (!producto) {
+            console.error('Producto no encontrado en carrito:', item.id);
+            return; // Saltar este item si no se encuentra
+        }
+        
         const precioNumerico = convertirPrecioANumero(producto.precio);
         const subtotal = precioNumerico * item.cantidad;
         total += subtotal;
@@ -1492,7 +1527,7 @@ function mostrarCarrito() {
         html += `
             <div class="carrito-item" data-producto="${item.id}">
                 <div class="item-imagen">
-                    <img src="${producto.imagen}" alt="${producto.nombre}">
+                    <img src="${producto.imagen}" alt="${producto.nombre}" onerror="this.src='images/Logo/logo-pincelart.jpg'">
                 </div>
                 <div class="item-info">
                     <h4>${producto.nombre}</h4>

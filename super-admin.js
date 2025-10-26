@@ -198,6 +198,48 @@ class SuperAdminSystem {
             this.filtrarProductosGlobales();
         });
 
+        // Formularios
+        document.getElementById('formVendedor').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.guardarVendedor();
+        });
+
+        document.getElementById('formCliente').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.guardarCliente();
+        });
+
+        document.getElementById('formEditarUsuario').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.guardarEditarUsuario();
+        });
+
+        // Filtros de usuarios
+        document.getElementById('buscarUsuario').addEventListener('input', () => {
+            this.filtrarUsuarios();
+        });
+
+        document.getElementById('filtroRol').addEventListener('change', () => {
+            this.filtrarUsuarios();
+        });
+
+        document.getElementById('filtroEstado').addEventListener('change', () => {
+            this.filtrarUsuarios();
+        });
+
+        // Filtros de productos
+        document.getElementById('buscarProductoGlobal').addEventListener('input', () => {
+            this.filtrarProductos();
+        });
+
+        document.getElementById('filtroVendedor').addEventListener('change', () => {
+            this.filtrarProductos();
+        });
+
+        document.getElementById('filtroCategoriaGlobal').addEventListener('change', () => {
+            this.filtrarProductos();
+        });
+
         // Cerrar modales al hacer clic fuera
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -877,6 +919,283 @@ class SuperAdminSystem {
             return 'Fecha inválida';
         }
     }
+
+    // ========== FUNCIONES DE MODALES ==========
+
+    abrirModalVendedor() {
+        const modal = document.getElementById('modalVendedor');
+        const form = document.getElementById('formVendedor');
+        
+        form.reset();
+        modal.classList.add('active');
+    }
+
+    cerrarModalVendedor() {
+        const modal = document.getElementById('modalVendedor');
+        modal.classList.remove('active');
+    }
+
+    abrirModalCliente() {
+        const modal = document.getElementById('modalCliente');
+        const form = document.getElementById('formCliente');
+        
+        form.reset();
+        modal.classList.add('active');
+    }
+
+    cerrarModalCliente() {
+        const modal = document.getElementById('modalCliente');
+        modal.classList.remove('active');
+    }
+
+    abrirModalEditarUsuario(usuarioId) {
+        const modal = document.getElementById('modalEditarUsuario');
+        const form = document.getElementById('formEditarUsuario');
+        const titulo = document.getElementById('modalEditarUsuarioTitulo');
+        
+        this.usuarioEditando = this.usuarios.find(u => u.id === usuarioId);
+        if (!this.usuarioEditando) return;
+
+        titulo.textContent = `Editar ${this.usuarioEditando.name || this.usuarioEditando.nombre}`;
+        
+        // Llenar formulario
+        document.getElementById('editarUsuarioNombre').value = this.usuarioEditando.name || this.usuarioEditando.nombre || '';
+        document.getElementById('editarUsuarioEmail').value = this.usuarioEditando.email || '';
+        document.getElementById('editarUsuarioTelefono').value = this.usuarioEditando.telefono || '';
+        document.getElementById('editarUsuarioRol').value = this.usuarioEditando.rol || '';
+        document.getElementById('editarUsuarioPassword').value = '';
+        document.getElementById('editarUsuarioEstado').value = this.usuarioEditando.activo ? 'activo' : 'inactivo';
+        
+        modal.classList.add('active');
+    }
+
+    cerrarModalEditarUsuario() {
+        const modal = document.getElementById('modalEditarUsuario');
+        modal.classList.remove('active');
+        this.usuarioEditando = null;
+    }
+
+    cerrarModal(modal) {
+        modal.classList.remove('active');
+    }
+
+    cerrarModalConfirmacion() {
+        const modal = document.getElementById('modalConfirmacion');
+        modal.classList.remove('active');
+    }
+
+    mostrarConfirmacion(mensaje, callback) {
+        const modal = document.getElementById('modalConfirmacion');
+        const mensajeElement = document.getElementById('confirmacionMensaje');
+        const botonConfirmar = document.getElementById('confirmarAccion');
+
+        mensajeElement.textContent = mensaje;
+        
+        // Remover listeners anteriores
+        const nuevoBoton = botonConfirmar.cloneNode(true);
+        botonConfirmar.parentNode.replaceChild(nuevoBoton, botonConfirmar);
+        
+        // Agregar nuevo listener
+        nuevoBoton.addEventListener('click', () => {
+            callback();
+            this.cerrarModalConfirmacion();
+        });
+
+        modal.classList.add('active');
+    }
+
+    // ========== FUNCIONES DE USUARIOS ==========
+
+    async guardarVendedor() {
+        const formData = new FormData(document.getElementById('formVendedor'));
+        
+        const vendedor = {
+            name: formData.get('nombre'),
+            email: formData.get('email'),
+            telefono: formData.get('telefono'),
+            password: formData.get('password'),
+            rol: 'vendedor',
+            activo: true,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            if (this.db) {
+                const docRef = await addDoc(collection(this.db, "usuarios"), {
+                    ...vendedor,
+                    fechaCreacion: serverTimestamp(),
+                    fechaModificacion: serverTimestamp()
+                });
+                vendedor.id = docRef.id;
+            } else {
+                // Fallback a localStorage
+                vendedor.id = 'vendedor_' + Date.now();
+                this.usuarios.push(vendedor);
+                localStorage.setItem('pincelart_users', JSON.stringify(this.usuarios));
+            }
+
+            await this.cargarUsuarios();
+            this.actualizarDashboard();
+            this.cerrarModalVendedor();
+            this.mostrarMensaje('Vendedor registrado correctamente', 'success');
+        } catch (error) {
+            console.error("Error guardando vendedor:", error);
+            this.mostrarMensaje('Error guardando vendedor', 'error');
+        }
+    }
+
+    async guardarCliente() {
+        const formData = new FormData(document.getElementById('formCliente'));
+        
+        const cliente = {
+            name: formData.get('nombre'),
+            email: formData.get('email'),
+            telefono: formData.get('telefono'),
+            password: formData.get('password'),
+            rol: 'cliente',
+            activo: true,
+            createdAt: new Date().toISOString()
+        };
+
+        try {
+            if (this.db) {
+                const docRef = await addDoc(collection(this.db, "usuarios"), {
+                    ...cliente,
+                    fechaCreacion: serverTimestamp(),
+                    fechaModificacion: serverTimestamp()
+                });
+                cliente.id = docRef.id;
+            } else {
+                // Fallback a localStorage
+                cliente.id = 'cliente_' + Date.now();
+                this.usuarios.push(cliente);
+                localStorage.setItem('pincelart_users', JSON.stringify(this.usuarios));
+            }
+
+            await this.cargarUsuarios();
+            this.actualizarDashboard();
+            this.cerrarModalCliente();
+            this.mostrarMensaje('Cliente registrado correctamente', 'success');
+        } catch (error) {
+            console.error("Error guardando cliente:", error);
+            this.mostrarMensaje('Error guardando cliente', 'error');
+        }
+    }
+
+    async guardarEditarUsuario() {
+        const formData = new FormData(document.getElementById('formEditarUsuario'));
+        
+        const datosActualizados = {
+            name: formData.get('nombre'),
+            email: formData.get('email'),
+            telefono: formData.get('telefono'),
+            rol: formData.get('rol'),
+            activo: formData.get('estado') === 'activo'
+        };
+
+        // Solo actualizar contraseña si se proporcionó
+        if (formData.get('password')) {
+            datosActualizados.password = formData.get('password');
+        }
+
+        try {
+            if (this.db) {
+                const docRef = doc(this.db, "usuarios", this.usuarioEditando.id);
+                await updateDoc(docRef, {
+                    ...datosActualizados,
+                    fechaModificacion: serverTimestamp()
+                });
+            } else {
+                // Fallback a localStorage
+                const index = this.usuarios.findIndex(u => u.id === this.usuarioEditando.id);
+                this.usuarios[index] = { ...this.usuarios[index], ...datosActualizados };
+                localStorage.setItem('pincelart_users', JSON.stringify(this.usuarios));
+            }
+
+            await this.cargarUsuarios();
+            this.actualizarDashboard();
+            this.cerrarModalEditarUsuario();
+            this.mostrarMensaje('Usuario actualizado correctamente', 'success');
+        } catch (error) {
+            console.error("Error actualizando usuario:", error);
+            this.mostrarMensaje('Error actualizando usuario', 'error');
+        }
+    }
+
+    async toggleEstadoUsuario(usuarioId) {
+        const usuario = this.usuarios.find(u => u.id === usuarioId);
+        if (!usuario) return;
+
+        const nuevoEstado = !usuario.activo;
+
+        try {
+            if (this.db) {
+                const docRef = doc(this.db, "usuarios", usuarioId);
+                await updateDoc(docRef, {
+                    activo: nuevoEstado,
+                    fechaModificacion: serverTimestamp()
+                });
+            } else {
+                // Fallback a localStorage
+                usuario.activo = nuevoEstado;
+                localStorage.setItem('pincelart_users', JSON.stringify(this.usuarios));
+            }
+
+            await this.cargarUsuarios();
+            this.actualizarDashboard();
+            this.mostrarMensaje(`Usuario ${nuevoEstado ? 'activado' : 'desactivado'}`, 'info');
+        } catch (error) {
+            console.error("Error cambiando estado:", error);
+            this.mostrarMensaje('Error cambiando estado', 'error');
+        }
+    }
+
+    async eliminarUsuario(usuarioId) {
+        const usuario = this.usuarios.find(u => u.id === usuarioId);
+        if (!usuario) return;
+
+        this.mostrarConfirmacion(
+            `¿Estás seguro de eliminar el usuario "${usuario.name || usuario.nombre}"?`,
+            async () => {
+                try {
+                    if (this.db) {
+                        const docRef = doc(this.db, "usuarios", usuarioId);
+                        await updateDoc(docRef, {
+                            activo: false,
+                            fechaModificacion: serverTimestamp()
+                        });
+                    } else {
+                        // Fallback a localStorage
+                        this.usuarios = this.usuarios.filter(u => u.id !== usuarioId);
+                        localStorage.setItem('pincelart_users', JSON.stringify(this.usuarios));
+                    }
+
+                    await this.cargarUsuarios();
+                    this.actualizarDashboard();
+                    this.mostrarMensaje('Usuario eliminado correctamente', 'success');
+                } catch (error) {
+                    console.error("Error eliminando usuario:", error);
+                    this.mostrarMensaje('Error eliminando usuario', 'error');
+                }
+            }
+        );
+    }
+
+    verDetallesProducto(productoId) {
+        const producto = this.productos.find(p => p.id === productoId);
+        if (!producto) return;
+
+        const vendedor = this.usuarios.find(u => u.id === producto.vendedorId);
+        const nombreVendedor = vendedor ? (vendedor.name || vendedor.nombre) : 'Desconocido';
+
+        this.mostrarMensaje(`
+            <strong>${producto.nombre}</strong><br>
+            <strong>Vendedor:</strong> ${nombreVendedor}<br>
+            <strong>Precio:</strong> $${producto.precio.toLocaleString()}<br>
+            <strong>Stock:</strong> ${producto.stock}<br>
+            <strong>Estado:</strong> ${producto.estado}
+        `, 'info');
+    }
 }
 
 // Funciones globales
@@ -912,6 +1231,30 @@ function cerrarModalEditarUsuario() {
 
 function cerrarModalConfirmacion() {
     superAdmin.cerrarModalConfirmacion();
+}
+
+function abrirModalVendedor() {
+    superAdmin.abrirModalVendedor();
+}
+
+function cerrarModalVendedor() {
+    superAdmin.cerrarModalVendedor();
+}
+
+function abrirModalCliente() {
+    superAdmin.abrirModalCliente();
+}
+
+function cerrarModalCliente() {
+    superAdmin.cerrarModalCliente();
+}
+
+function abrirModalEditarUsuario(usuarioId) {
+    superAdmin.abrirModalEditarUsuario(usuarioId);
+}
+
+function cerrarModalEditarUsuario() {
+    superAdmin.cerrarModalEditarUsuario();
 }
 
 function irATienda() {
