@@ -30,9 +30,28 @@ class SuperAdminSystem {
         await this.inicializarFirebase();
         await this.cargarDatos();
         this.setupEventListeners();
+        this.inicializarNavegacion();
         this.actualizarDashboard();
         await this.cargarUsuarios();
         await this.cargarProductos();
+    }
+
+    inicializarNavegacion() {
+        console.log('Inicializando navegación...');
+        
+        // Asegurar que solo la sección dashboard esté activa
+        document.querySelectorAll('.super-admin-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById('dashboard').classList.add('active');
+        
+        // Asegurar que solo el botón dashboard esté activo
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector('[data-section="dashboard"]').classList.add('active');
+        
+        console.log('Navegación inicializada');
     }
 
     async inicializarFirebase() {
@@ -148,29 +167,36 @@ class SuperAdminSystem {
     }
 
     setupEventListeners() {
-        // Navegación del panel
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const section = e.currentTarget.dataset.section;
-                this.mostrarSeccion(section);
-            });
-        });
-
+        // Los botones de navegación ahora usan onclick directamente en el HTML
+        // No necesitamos event listeners para ellos
+        console.log('Event listeners configurados (navegación usa onclick)');
+        
         // Formularios de usuarios
-        document.getElementById('formVendedor').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.guardarVendedor();
-        });
+        const formVendedor = document.getElementById('formVendedor');
+        if (formVendedor) {
+            formVendedor.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.guardarVendedor();
+            });
+        }
 
-        document.getElementById('formCliente').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.guardarCliente();
-        });
+        const formCliente = document.getElementById('formCliente');
+        if (formCliente) {
+            formCliente.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.guardarCliente();
+            });
+        }
 
-        document.getElementById('formEditarUsuario').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.guardarEdicionUsuario();
-        });
+        const formEditarUsuario = document.getElementById('formEditarUsuario');
+        if (formEditarUsuario) {
+            formEditarUsuario.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.guardarEditarUsuario();
+            });
+        }
+
+        // Código duplicado eliminado
 
         // Filtros de usuarios
         document.getElementById('buscarUsuario').addEventListener('input', () => {
@@ -251,29 +277,59 @@ class SuperAdminSystem {
     }
 
     mostrarSeccion(seccionId) {
+        console.log('=== MOSTRAR SECCIÓN ===');
+        console.log('Sección solicitada:', seccionId);
+        
         // Ocultar todas las secciones
-        document.querySelectorAll('.super-admin-section').forEach(section => {
+        const todasLasSecciones = document.querySelectorAll('.super-admin-section');
+        console.log('Secciones encontradas:', todasLasSecciones.length);
+        
+        todasLasSecciones.forEach(section => {
+            console.log('Ocultando sección:', section.id);
             section.classList.remove('active');
         });
 
         // Mostrar la sección seleccionada
-        document.getElementById(seccionId).classList.add('active');
+        const seccionTarget = document.getElementById(seccionId);
+        if (seccionTarget) {
+            console.log('✅ Mostrando sección:', seccionId);
+            seccionTarget.classList.add('active');
+        } else {
+            console.error('❌ No se encontró la sección:', seccionId);
+            return;
+        }
 
         // Actualizar navegación
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        const todosLosBotones = document.querySelectorAll('.nav-btn');
+        console.log('Botones de navegación encontrados:', todosLosBotones.length);
+        
+        todosLosBotones.forEach(btn => {
             btn.classList.remove('active');
         });
-        document.querySelector(`[data-section="${seccionId}"]`).classList.add('active');
+        
+        const btnTarget = document.querySelector(`[onclick*="${seccionId}"]`);
+        if (btnTarget) {
+            console.log('✅ Activando botón:', btnTarget.textContent.trim());
+            btnTarget.classList.add('active');
+        } else {
+            console.error('❌ No se encontró el botón para:', seccionId);
+        }
 
         // Cargar datos específicos de la sección
+        console.log('Cargando datos para sección:', seccionId);
         if (seccionId === 'usuarios') {
+            console.log('Cargando usuarios...');
             this.cargarUsuarios();
         } else if (seccionId === 'productos') {
+            console.log('Cargando productos...');
             this.cargarProductos();
             this.cargarVendedoresEnFiltro();
         } else if (seccionId === 'dashboard') {
+            console.log('Actualizando dashboard...');
             this.actualizarDashboard();
         }
+        
+        console.log('✅ Sección mostrada completamente');
     }
 
     actualizarDashboard() {
@@ -1201,8 +1257,59 @@ class SuperAdminSystem {
 // Funciones globales
 let superAdmin;
 
+// Función súper simple para cambiar pantallas
+function cambiarPantalla(seccionId) {
+    console.log('🎯 CAMBIANDO A:', seccionId);
+    
+    // Ocultar todas las secciones
+    const secciones = document.querySelectorAll('.super-admin-section');
+    secciones.forEach(section => {
+        section.style.display = 'none';
+        section.classList.remove('active');
+    });
+
+    // Mostrar la sección solicitada
+    const seccionTarget = document.getElementById(seccionId);
+    if (seccionTarget) {
+        seccionTarget.style.display = 'block';
+        seccionTarget.classList.add('active');
+        console.log('✅ Pantalla cambiada a:', seccionId);
+    } else {
+        console.error('❌ No se encontró la sección:', seccionId);
+    }
+
+    // Actualizar botones
+    const botones = document.querySelectorAll('.nav-btn');
+    botones.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Activar el botón correcto
+    const botonActivo = document.querySelector(`[onclick*="${seccionId}"]`);
+    if (botonActivo) {
+        botonActivo.classList.add('active');
+    }
+    
+    console.log('🎉 NAVEGACIÓN COMPLETADA');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🎯 DOM CARGADO - Inicializando SuperAdmin...');
     superAdmin = new SuperAdminSystem();
+    console.log('✅ SuperAdmin inicializado:', superAdmin);
+    
+    // Función de prueba
+    window.testNavigation = function() {
+        console.log('🧪 FUNCIÓN DE PRUEBA EJECUTADA');
+        alert('JavaScript está funcionando correctamente');
+    };
+    
+    console.log('🔧 Función de prueba disponible: testNavigation()');
+    
+    // Asegurar que dashboard esté visible
+    setTimeout(() => {
+        cambiarPantalla('dashboard');
+    }, 100);
 });
 
 function abrirModalVendedor() {

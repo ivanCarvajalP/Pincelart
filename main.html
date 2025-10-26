@@ -35,7 +35,9 @@
                 <a href="#contacto">Contacto</a>
                 <span class="user-info">
                     <span class="user-name">Usuario</span>
-                    <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+                    <button class="btn-register" onclick="abrirModalRegistro()">Registrarse</button>
+                    <button class="btn-login" onclick="window.location.href='login.html'">Iniciar Sesión</button>
+                    <button class="btn-logout" onclick="logout()" style="display: none;">Cerrar Sesión</button>
                 </span>
             </nav>
         </div>
@@ -582,6 +584,46 @@
             <p>&copy; 2024 PincelArt - Productos Amazónicos Personalizados</p>
         </div>
     </footer>
+
+    <!-- Modal de Registro de Cliente -->
+    <div id="modalRegistro" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrarse como Cliente</h2>
+                <button class="btn-cerrar" onclick="cerrarModalRegistro()">&times;</button>
+            </div>
+            <form id="formRegistroCliente" class="form-registro">
+                <div class="form-group">
+                    <label for="nombreCliente">Nombre Completo:</label>
+                    <input type="text" id="nombreCliente" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="emailCliente">Email:</label>
+                    <input type="email" id="emailCliente" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="telefonoCliente">Teléfono:</label>
+                    <input type="tel" id="telefonoCliente" name="telefono" required>
+                </div>
+                <div class="form-group">
+                    <label for="passwordCliente">Contraseña:</label>
+                    <input type="password" id="passwordCliente" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmarPassword">Confirmar Contraseña:</label>
+                    <input type="password" id="confirmarPassword" name="confirmarPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="direccionCliente">Dirección:</label>
+                    <textarea id="direccionCliente" name="direccion" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancelar" onclick="cerrarModalRegistro()">Cancelar</button>
+                    <button type="submit" class="btn-registrar">Registrarse</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="script.js?v=20250103"></script>
 </body>

@@ -305,6 +305,15 @@ function mostrarSeccion(seccion) {
 function initEcommerce() {
     console.log('Inicializando e-commerce...');
     
+    // Event listener para formulario de registro
+    const formRegistro = document.getElementById('formRegistroCliente');
+    if (formRegistro) {
+        formRegistro.addEventListener('submit', manejarRegistroCliente);
+        console.log('✅ Event listener agregado para formulario de registro');
+    } else {
+        console.warn('⚠️ No se encontró el formulario de registro');
+    }
+    
     // Event listeners para botones de carrito y favoritos
     document.addEventListener('click', function(e) {
         console.log('Click detectado en:', e.target);
@@ -1102,6 +1111,15 @@ function updateUserInterface() {
             console.log('Nombre de usuario actualizado:', fullName, '->', abbreviatedName);
         }
         
+        // Ocultar botones de registro y login, mostrar logout
+        const btnRegister = document.querySelector('.btn-register');
+        const btnLogin = document.querySelector('.btn-login');
+        const btnLogout = document.querySelector('.btn-logout');
+        
+        if (btnRegister) btnRegister.style.display = 'none';
+        if (btnLogin) btnLogin.style.display = 'none';
+        if (btnLogout) btnLogout.style.display = 'block';
+        
         // Mostrar botón de logout
         const logoutButton = document.querySelector('.btn-logout');
         if (logoutButton) {
@@ -1114,11 +1132,20 @@ function updateUserInterface() {
         // Mostrar botón de administración si es admin/vendedor
         mostrarBotonAdmin();
     } else {
-        // Usuario no logueado - mostrar opciones de login
+        // Usuario no logueado - mostrar opciones de login y registro
         const userNameElement = document.querySelector('.user-name');
         if (userNameElement) {
-            userNameElement.textContent = 'Invitado';
+            userNameElement.textContent = 'Usuario';
         }
+        
+        // Mostrar botones de registro y login, ocultar logout
+        const btnRegister = document.querySelector('.btn-register');
+        const btnLogin = document.querySelector('.btn-login');
+        const btnLogout = document.querySelector('.btn-logout');
+        
+        if (btnRegister) btnRegister.style.display = 'block';
+        if (btnLogin) btnLogin.style.display = 'block';
+        if (btnLogout) btnLogout.style.display = 'none';
         
         // Mostrar botón de login en lugar de logout
         const logoutButton = document.querySelector('.btn-logout');
@@ -1727,3 +1754,190 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Los botones de compra ya están manejados en initEcommerce()
+
+// ========== FUNCIONES DE REGISTRO DE CLIENTES ==========
+
+// Función para abrir modal de registro
+function abrirModalRegistro() {
+    console.log('🎯 Abriendo modal de registro...');
+    const modal = document.getElementById('modalRegistro');
+    if (modal) {
+        modal.style.display = 'block';
+        console.log('✅ Modal de registro abierto');
+    } else {
+        console.error('❌ No se encontró el modal de registro');
+    }
+}
+
+// Función para cerrar modal de registro
+function cerrarModalRegistro() {
+    console.log('🎯 Cerrando modal de registro...');
+    const modal = document.getElementById('modalRegistro');
+    if (modal) {
+        modal.style.display = 'none';
+        // Limpiar formulario
+        document.getElementById('formRegistroCliente').reset();
+        console.log('✅ Modal de registro cerrado');
+    }
+}
+
+// Función para registrar cliente en Firebase
+async function registrarClienteEnFirebase(datosCliente) {
+    try {
+        console.log('🎯 Registrando cliente en Firebase:', datosCliente);
+        
+        // Verificar si Firebase está disponible
+        if (!window.firebaseDB) {
+            console.error('❌ Firebase no está inicializado');
+            throw new Error('Firebase no está disponible');
+        }
+
+        // Importar funciones de Firebase
+        const { collection, addDoc, serverTimestamp, query, where, getDocs } = await import('https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js');
+        
+        const db = window.firebaseDB;
+        
+        // Verificar si el email ya existe
+        const usuariosRef = collection(db, 'usuarios');
+        const q = query(usuariosRef, where('email', '==', datosCliente.email));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            throw new Error('Ya existe un usuario con este email');
+        }
+        
+        // Crear el documento del usuario
+        const nuevoUsuario = {
+            name: datosCliente.nombre,
+            email: datosCliente.email,
+            telefono: datosCliente.telefono,
+            password: datosCliente.password,
+            rol: 'cliente',
+            activo: true,
+            direccion: datosCliente.direccion || '',
+            fechaCreacion: serverTimestamp(),
+            fechaModificacion: serverTimestamp()
+        };
+        
+        const docRef = await addDoc(usuariosRef, nuevoUsuario);
+        console.log('✅ Cliente registrado con ID:', docRef.id);
+        
+        return { success: true, id: docRef.id };
+        
+    } catch (error) {
+        console.error('❌ Error registrando cliente:', error);
+        throw error;
+    }
+}
+
+// Función para registrar cliente en LocalStorage (fallback)
+function registrarClienteEnLocalStorage(datosCliente) {
+    try {
+        console.log('🎯 Registrando cliente en LocalStorage:', datosCliente);
+        
+        // Obtener usuarios existentes
+        let usuarios = JSON.parse(localStorage.getItem('pincelart_users')) || [];
+        
+        // Verificar si el email ya existe
+        const emailExiste = usuarios.some(usuario => usuario.email === datosCliente.email);
+        if (emailExiste) {
+            throw new Error('Ya existe un usuario con este email');
+        }
+        
+        // Crear nuevo usuario
+        const nuevoUsuario = {
+            id: Date.now().toString(),
+            name: datosCliente.nombre,
+            email: datosCliente.email,
+            telefono: datosCliente.telefono,
+            password: datosCliente.password,
+            rol: 'cliente',
+            activo: true,
+            direccion: datosCliente.direccion || '',
+            fechaCreacion: new Date().toISOString(),
+            fechaModificacion: new Date().toISOString()
+        };
+        
+        // Agregar a la lista
+        usuarios.push(nuevoUsuario);
+        
+        // Guardar en LocalStorage
+        localStorage.setItem('pincelart_users', JSON.stringify(usuarios));
+        console.log('✅ Cliente registrado en LocalStorage con ID:', nuevoUsuario.id);
+        
+        return { success: true, id: nuevoUsuario.id };
+        
+    } catch (error) {
+        console.error('❌ Error registrando cliente en LocalStorage:', error);
+        throw error;
+    }
+}
+
+// Función para manejar el envío del formulario de registro
+async function manejarRegistroCliente(event) {
+    event.preventDefault();
+    console.log('🎯 Procesando registro de cliente...');
+    
+    try {
+        // Obtener datos del formulario
+        const formData = new FormData(event.target);
+        const datosCliente = {
+            nombre: formData.get('nombre'),
+            email: formData.get('email'),
+            telefono: formData.get('telefono'),
+            password: formData.get('password'),
+            confirmarPassword: formData.get('confirmarPassword'),
+            direccion: formData.get('direccion')
+        };
+        
+        // Validaciones
+        if (datosCliente.password !== datosCliente.confirmarPassword) {
+            throw new Error('Las contraseñas no coinciden');
+        }
+        
+        if (datosCliente.password.length < 6) {
+            throw new Error('La contraseña debe tener al menos 6 caracteres');
+        }
+        
+        // Mostrar loading
+        const btnRegistrar = event.target.querySelector('.btn-registrar');
+        const textoOriginal = btnRegistrar.textContent;
+        btnRegistrar.textContent = 'Registrando...';
+        btnRegistrar.disabled = true;
+        
+        let resultado;
+        
+        // Intentar registrar en Firebase primero
+        try {
+            resultado = await registrarClienteEnFirebase(datosCliente);
+            console.log('✅ Registro exitoso en Firebase');
+        } catch (firebaseError) {
+            console.warn('⚠️ Error en Firebase, usando LocalStorage:', firebaseError.message);
+            resultado = registrarClienteEnLocalStorage(datosCliente);
+        }
+        
+        if (resultado.success) {
+            // Mostrar mensaje de éxito
+            alert('¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.');
+            
+            // Cerrar modal y limpiar formulario
+            cerrarModalRegistro();
+            
+            // Opcional: redirigir al login
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1000);
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en registro:', error);
+        alert('Error al registrarse: ' + error.message);
+    } finally {
+        // Restaurar botón
+        const btnRegistrar = event.target.querySelector('.btn-registrar');
+        btnRegistrar.textContent = 'Registrarse';
+        btnRegistrar.disabled = false;
+    }
+}
+
+// ========== FUNCIONES DE REGISTRO DE CLIENTES ==========

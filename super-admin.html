@@ -23,8 +23,8 @@
             <div class="super-admin-user-info">
                 <span class="super-admin-user-name" id="superAdminUserName">Super Usuario</span>
                 <div class="super-admin-user-actions">
-                    <button class="btn-super-admin btn-secondary" onclick="irATienda()">
-                        <i class="fas fa-store"></i> Ver Tienda
+                    <button class="btn-super-admin btn-primary" onclick="window.location.href='main.html'">
+                        <i class="fas fa-home"></i> Volver a la página principal
                     </button>
                     <button class="btn-super-admin btn-danger" onclick="cerrarSesionSuperAdmin()">
                         <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
@@ -37,27 +37,27 @@
     <!-- Navegación del Super Admin -->
     <nav class="super-admin-nav">
         <div class="super-admin-nav-content">
-            <button class="nav-btn active" data-section="dashboard">
+            <button class="nav-btn active" onclick="cambiarPantalla('dashboard')">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </button>
-            <button class="nav-btn" data-section="usuarios">
+            <button class="nav-btn" onclick="cambiarPantalla('usuarios')">
                 <i class="fas fa-users-cog"></i>
                 <span>Gestión de Usuarios</span>
             </button>
-            <button class="nav-btn" data-section="productos">
+            <button class="nav-btn" onclick="cambiarPantalla('productos')">
                 <i class="fas fa-box"></i>
                 <span>Todos los Productos</span>
             </button>
-            <button class="nav-btn" data-section="ventas">
+            <button class="nav-btn" onclick="cambiarPantalla('ventas')">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Ventas Globales</span>
             </button>
-            <button class="nav-btn" data-section="reportes">
+            <button class="nav-btn" onclick="cambiarPantalla('reportes')">
                 <i class="fas fa-chart-line"></i>
                 <span>Reportes Avanzados</span>
             </button>
-            <button class="nav-btn" data-section="configuracion">
+            <button class="nav-btn" onclick="cambiarPantalla('configuracion')">
                 <i class="fas fa-cogs"></i>
                 <span>Configuración</span>
             </button>
