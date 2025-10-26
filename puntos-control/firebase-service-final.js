@@ -254,15 +254,21 @@ class FirebaseService {
         }
 
         try {
+            // Verificar si el documento existe antes de actualizar
             const docRef = this.db.collection('productos').doc(productId);
+            const doc = await docRef.get();
             
-            // Usar set con merge para crear o actualizar
-            await docRef.set({
+            if (!doc.exists) {
+                console.log('⚠️ Producto no existe en Firebase, no se actualiza:', productId);
+                return { success: false, error: 'Producto no existe en Firebase' };
+            }
+            
+            // Actualizar el documento en Firebase
+            await docRef.update({
                 ...datosActualizados,
                 fechaActualizacion: new Date().toISOString()
-            }, { merge: true });
-            
-            console.log('✅ Producto actualizado/creado en Firebase:', productId);
+            });
+            console.log('✅ Producto actualizado en Firebase:', productId);
             
             // Devolver éxito
             return { success: true };
@@ -287,53 +293,6 @@ class FirebaseService {
         } catch (error) {
             console.error('❌ Error eliminando producto:', error);
             return { success: false, error: error.message };
-        }
-    }
-
-    // Listeners en tiempo real para sincronización automática
-    onProductosChange(callback) {
-        if (!this.initialized) {
-            console.warn('⚠️ Firebase no disponible, usando eventos de localStorage');
-            // Crear listener para cambios en localStorage
-            const originalSetItem = Storage.prototype.setItem;
-            Storage.prototype.setItem = function(key, value) {
-                originalSetItem.apply(this, arguments);
-                if (key === 'pincelart_productos') {
-                    callback(null, JSON.parse(value));
-                }
-            };
-            return;
-        }
-
-        try {
-            console.log('👂 Configurando listener en tiempo real de productos...');
-            
-            this.db.collection('productos').onSnapshot(
-                (snapshot) => {
-                    console.log('🔥 Cambio detectado en Firebase productos');
-                    const productos = [];
-                    snapshot.forEach(doc => {
-                        productos.push({ id: doc.id, ...doc.data() });
-                    });
-                    
-                    // Actualizar localStorage
-                    localStorage.setItem('pincelart_productos', JSON.stringify(productos));
-                    
-                    // Disparar evento personalizado
-                    window.dispatchEvent(new CustomEvent('productos-actualizados', { 
-                        detail: { productos } 
-                    }));
-                    
-                    // Llamar al callback
-                    callback(null, productos);
-                },
-                (error) => {
-                    console.error('❌ Error en listener de productos:', error);
-                    callback(error, null);
-                }
-            );
-        } catch (error) {
-            console.error('❌ Error configurando listener:', error);
         }
     }
 

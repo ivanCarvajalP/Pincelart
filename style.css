@@ -2189,7 +2189,489 @@ html {
     }
 }
 
-/* Estilos para información del usuario */
+/* Estilos para panel de administración */
+.modal-admin-contenido {
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Asegurar que el modal de admin tenga z-index alto pero menor que confirmación */
+#modal-admin {
+    z-index: 10000 !important;
+}
+
+.admin-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section h4 {
+    color: #1976d2;
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-bottom: 2px solid #e3f2fd;
+    padding-bottom: 0.5rem;
+}
+
+.admin-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.btn-admin {
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-admin:hover {
+    background: linear-gradient(135deg, #1565c0, #1976d2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+}
+
+.btn-admin i {
+    font-size: 1.2rem;
+}
+
+/* Estilos adicionales para elementos del panel de admin */
+.usuarios-container {
+    max-width: 100%;
+}
+
+.usuarios-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.btn-refresh {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-refresh:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+}
+
+.usuarios-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.usuario-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+}
+
+.usuario-info h4 {
+    margin-bottom: 0.25rem;
+    color: #2c3e50;
+}
+
+.usuario-info p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.rol-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.rol-super_usuario {
+    background: #f44336;
+    color: white;
+}
+
+.rol-vendedor {
+    background: #ff9800;
+    color: white;
+}
+
+.rol-cliente {
+    background: #4caf50;
+    color: white;
+}
+
+.usuario-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-edit,
+.btn-delete {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-edit {
+    background: #2196f3;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #1976d2;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: #f44336;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+}
+
+.usuario-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.75rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+.btn-cancel,
+.btn-save {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel {
+    background: #666;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #555;
+    transform: translateY(-2px);
+}
+
+.btn-save {
+    background: var(--gradient-success);
+    color: white;
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Responsive para elementos del modal */
+@media (max-width: 768px) {
+    .usuarios-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .usuario-item {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .usuario-actions {
+        justify-content: center;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-cancel,
+    .btn-save {
+        width: 100%;
+    }
+}
+
+.btn-admin.btn-secondary {
+    background: linear-gradient(135deg, #666, #888);
+}
+
+.btn-admin.btn-secondary:hover {
+    background: linear-gradient(135deg, #555, #666);
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #1976d2;
+}
+
+.form-group textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.image-preview {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+
+/* Responsive para panel admin */
+@media (max-width: 768px) {
+    .modal-admin-contenido {
+        max-width: 95vw;
+        margin: 10px;
+    }
+    
+    .admin-buttons {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-admin {
+        width: 100%;
+    }
+}
+
+/* Estilos para módulo de confirmación rápida */
+.confirmation-module {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    padding: 0;
+    transform: translateX(400px);
+    transition: all 0.3s ease;
+    max-width: 350px;
+    min-width: 300px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.confirmation-module.show {
+    transform: translateX(0);
+}
+
+.confirmation-content {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 15px;
+}
+
+.confirmation-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.confirmation-text {
+    flex: 1;
+    color: white;
+}
+
+.confirmation-text h4 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.confirmation-text p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.confirmation-buttons {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-confirm-yes,
+.btn-confirm-no {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 50px;
+}
+
+.btn-confirm-yes {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-confirm-yes:hover {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+.btn-confirm-no {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-confirm-no:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Responsive para módulo de confirmación */
+@media (max-width: 768px) {
+    .confirmation-module {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        min-width: auto;
+        transform: translateY(-100px);
+    }
+    
+    .confirmation-module.show {
+        transform: translateY(0);
+    }
+    
+    .confirmation-content {
+        padding: 12px 15px;
+        gap: 12px;
+    }
+    
+    .confirmation-text h4 {
+        font-size: 15px;
+    }
+    
+    .confirmation-text p {
+        font-size: 13px;
+    }
+    
+    .btn-confirm-yes,
+    .btn-confirm-no {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+}
 .user-info {
     display: flex;
     align-items: center;

@@ -52,140 +52,31 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Mostrar todas las secciones por defecto excepto carrito y favoritos
     // Solo aplicar esto si NO estamos en el panel de administración
     if (!window.location.pathname.includes('admin-panel.html')) {
-    document.querySelectorAll('section').forEach(section => {
-        if (section.id === 'carrito' || section.id === 'favoritos') {
-            section.style.display = 'none';
-        } else {
-            section.style.display = 'block';
-        }
-    });
-    
-    // Asegurar que la sección de visión y misión esté visible
-    const visionMision = document.getElementById('vision-mision');
-    if (visionMision) {
-        visionMision.style.display = 'block';
-    }
-    
-    // Ocultar modal por defecto
-    const modal = document.getElementById('modal-productos');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // Activar filtros
-    initFiltrosCategorias();
-    
-    // Activar funcionalidad de e-commerce
-    initEcommerce();
-    
-    // SINCRONIZAR CATÁLOGO CON PRODUCTOS DE GESTIÓN
-    actualizarCatalogoDesdeGestión();
-    }
-    
-    // ESCUCHAR CAMBIOS EN PRODUCTOS DESDE ADMIN
-    window.addEventListener('productos-actualizados', function(event) {
-        console.log('📢 Evento productos-actualizados recibido');
-        actualizarCatalogoDesdeGestión();
-        
-        // ACTUALIZAR FILTROS con nuevas categorías
-        actualizarFiltrosCategorias();
-    });
-    
-    // Función para actualizar filtros de categorías dinámicamente
-    function actualizarFiltrosCategorias() {
-        console.log('🔄 Actualizando filtros dinámicamente...');
-        initFiltrosCategorias();
-    }
-    
-    // Función para actualizar catálogo con datos de Gestión de Productos
-    function actualizarCatalogoDesdeGestión() {
-        // Cargar productos desde localStorage
-        let productosGestion = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        
-        if (productosGestion.length === 0) {
-            console.log('⚠️ No hay productos en gestión');
-            return;
-        }
-        
-        // LIMPIAR DUPLICADOS - Usar solo productos únicos por ID
-        const productosUnicos = [];
-        const idsVistos = new Set();
-        
-        productosGestion.forEach(p => {
-            if (!idsVistos.has(p.id)) {
-                idsVistos.add(p.id);
-                productosUnicos.push(p);
-            }
-        });
-        
-        console.log(`🔄 Sincronizando catálogo con ${productosUnicos.length} productos ÚNICOS de Gestión (antes: ${productosGestion.length})`);
-        
-        // ACTUALIZAR localStorage con TODOS los productos (para gestión)
-        localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
-        
-        // FILTRAR: Solo productos ACTIVOS para el catálogo público
-        const productosActivos = productosUnicos.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
-        
-        console.log(`👥 Catálogo público: ${productosActivos.length} productos activos de ${productosUnicos.length} totales`);
-        
-        // Trabajar con productos activos para actualizar el catálogo
-        productosGestion = productosActivos;
-        
-        // Actualizar tarjetas principales
-        document.querySelectorAll('.producto-card').forEach(tarjeta => {
-            const dataProducto = tarjeta.getAttribute('data-producto');
-            const dataCategoria = tarjeta.getAttribute('data-categoria');
-            
-            if (!dataProducto || !dataCategoria) return;
-            
-            // Buscar producto en localStorage que coincida
-            const producto = productosGestion.find(p => {
-                const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(dataProducto.toLowerCase());
-                const categoriaMatch = p.categoria === dataCategoria;
-                return imagenMatch && categoriaMatch;
-            });
-            
-            if (producto) {
-                // Actualizar precio
-                const precioEl = tarjeta.querySelector('.precio');
-                if (precioEl) {
-                    precioEl.textContent = `$${producto.precio.toLocaleString()}`;
-                }
-                
-                // Actualizar stock
-                const stockEls = tarjeta.querySelectorAll('small');
-                stockEls.forEach(el => {
-                    if (el.textContent.includes('Stock:')) {
-                        el.textContent = `Stock: ${producto.stock || 1}`;
-                    }
-                });
-                
-                // Actualizar descripción
-                const descEl = tarjeta.querySelector('p');
-                if (descEl && producto.descripcion) {
-                    descEl.textContent = producto.descripcion;
-                }
-                
-                // Actualizar imagen SIEMPRE (sea Base64 o URL)
-                if (producto.imagen) {
-                    const imgEl = tarjeta.querySelector('img');
-                    if (imgEl) {
-                        imgEl.src = producto.imagen;
-                        console.log(`🖼️ Imagen actualizada: ${producto.imagen.substring(0, 50)}...`);
-                    }
-                }
-                
-                console.log(`✅ Actualizado: ${dataProducto} - $${producto.precio}`);
+        document.querySelectorAll('section').forEach(section => {
+            if (section.id === 'carrito' || section.id === 'favoritos') {
+                section.style.display = 'none';
             } else {
-                console.log(`⚠️ No se encontró producto para: ${dataProducto} en categoría ${dataCategoria}`);
+                section.style.display = 'block';
             }
         });
         
-        // Actualizar productos globales SOLO con activos
-        productos = productosActivos;
-        console.log(`✅ Variable global 'productos' actualizada con ${productos.length} productos ACTIVOS`);
+        // Asegurar que la sección de visión y misión esté visible
+        const visionMision = document.getElementById('vision-mision');
+        if (visionMision) {
+            visionMision.style.display = 'block';
+        }
+        
+        // Ocultar modal por defecto
+        const modal = document.getElementById('modal-productos');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Activar filtros
+        initFiltrosCategorias();
+        
+        // Activar funcionalidad de e-commerce
+        initEcommerce();
     }
     
 // Debug para verificar imagen de pulsera (mejorado)
@@ -729,12 +620,9 @@ function mostrarTodosProductosTipo(tipo) {
             <h3>${producto.nombre}</h3>
             <p>${producto.descripcion}</p>
             <div class="precio-categoria">
-                <span class="precio">$${producto.precio ? (typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio) : 'Consultar'}</span>
+                <span class="precio">${producto.precio}</span>
                 <span class="categoria">${producto.categoria}</span>
             </div>
-            <small style="display: block; margin-top: 0.5rem; color: #4caf50; font-weight: 600;">
-                Stock: 1
-            </small>
             <div class="producto-acciones">
                 <button class="btn-carrito" data-producto="${producto.id}">🛒 Carrito</button>
                 <button class="btn-compra" data-producto="${producto.id}">💳 Comprar</button>
@@ -942,29 +830,8 @@ function agregarEventListenersModal() {
 function obtenerProductosTipo(tipo) {
     console.log('=== OBTENER PRODUCTOS TIPO ===');
     console.log('Tipo solicitado:', tipo);
+    console.log('Tipo de dato:', typeof tipo);
     
-    // CARGAR PRODUCTOS DESDE LOCALSTORAGE (GESTIÓN DE PRODUCTOS)
-    const productosGestion = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-    
-    if (productosGestion.length > 0) {
-        console.log(`✅ Usando ${productosGestion.length} productos de Gestión de Productos`);
-        
-        // FILTRAR: Solo productos ACTIVOS para modales "Ver Más"
-        const productosActivos = productosGestion.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
-        
-        console.log(`👥 Filtrando a ${productosActivos.length} productos ACTIVOS de ${productosGestion.length} totales`);
-        
-        return productosActivos.filter(p => {
-            const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(tipo.toLowerCase());
-            const nombreMatch = p.nombre && p.nombre.toLowerCase().includes(tipo.toLowerCase());
-            return imagenMatch || nombreMatch;
-        });
-    }
-    
-    // Si no hay productos en gestión, usar datos estáticos como fallback
-    console.log('⚠️ No hay productos en gestión, usando datos estáticos');
     const productos = {
         'guayabera': [
             { id: 'guayabera', nombre: 'Guayabera para Mujer', precio: '$65.000', imagen: 'images/productos/Ropa/Guayabera/guayaberaFem1.jpg', descripcion: 'Elegancia y tradición amazónica en cada puntada. Diseño clásico con bordados únicos que reflejan la cultura amazónica. Perfecta para ocasiones especiales y eventos tradicionales.', categoria: 'Ropa' },
@@ -1107,36 +974,11 @@ function obtenerProductosTipo(tipo) {
     return resultado;
 }
 
-// Filtros de categorías DINÁMICOS
+// Filtros de categorías
 function initFiltrosCategorias() {
-    // Actualizar filtros dinámicamente desde localStorage
-    if (!productos || productos.length === 0) {
-        console.log('⚠️ No hay productos para crear filtros');
-        return;
-    }
-    
-    // Obtener categorías únicas
-    const categorias = [...new Set(productos.map(p => p.categoria))];
-    const filtrosContainer = document.querySelector('.filtros-categorias');
-    
-    if (!filtrosContainer) {
-        console.error('❌ No se encontró contenedor de filtros');
-        return;
-    }
-    
-    // Limpiar y crear filtros dinámicos
-    let filtrosHTML = `<button class="filtro-btn active" data-categoria="todos">Todos</button>`;
-    
-    categorias.forEach(categoria => {
-        const cantidad = productos.filter(p => p.categoria === categoria).length;
-        filtrosHTML += `<button class="filtro-btn" data-categoria="${categoria.toLowerCase()}">${categoria} (${cantidad})</button>`;
-    });
-    
-    filtrosContainer.innerHTML = filtrosHTML;
-    console.log('✅ Filtros dinámicos creados:', categorias);
-    
-    // Agregar event listeners
     const filtros = document.querySelectorAll('.filtro-btn');
+    const productos = document.querySelectorAll('.producto-card');
+    
     filtros.forEach(filtro => {
         filtro.addEventListener('click', () => {
             // Remover clase active de todos los filtros
@@ -1145,51 +987,18 @@ function initFiltrosCategorias() {
             filtro.classList.add('active');
             
             const categoria = filtro.getAttribute('data-categoria');
-            console.log('🔍 Filtrando por:', categoria);
             
-            filtrarPorCategoria(categoria);
+            productos.forEach(producto => {
+                if (categoria === 'todos' || producto.getAttribute('data-categoria') === categoria) {
+                    producto.style.display = 'block';
+                    producto.classList.remove('hidden');
+                } else {
+                    producto.style.display = 'none';
+                    producto.classList.add('hidden');
+                }
+            });
         });
     });
-}
-
-// Función para filtrar productos por categoría
-function filtrarPorCategoria(categoria) {
-    console.log('🔍 Filtrando catálogo por:', categoria);
-    
-    const tarjetas = document.querySelectorAll('.producto-card');
-    
-    if (categoria === 'todos') {
-        tarjetas.forEach(tarjeta => {
-            tarjeta.style.display = 'block';
-            tarjeta.classList.remove('hidden');
-        });
-        console.log('✅ Mostrando todos los productos (', tarjetas.length, 'tarjetas)');
-    } else {
-        // Primero ocultar todas
-        tarjetas.forEach(tarjeta => {
-            tarjeta.style.display = 'none';
-            tarjeta.classList.add('hidden');
-        });
-        
-        // Mostrar solo las de la categoría seleccionada
-        let visibles = 0;
-        tarjetas.forEach(tarjeta => {
-            const dataCategoria = tarjeta.getAttribute('data-categoria');
-            if (dataCategoria && dataCategoria.toLowerCase() === categoria.toLowerCase()) {
-                tarjeta.style.display = 'block';
-                tarjeta.classList.remove('hidden');
-                visibles++;
-            }
-        });
-        
-        console.log(`✅ Mostrando ${visibles} productos de categoría "${categoria}"`);
-        
-        // Si no hay productos en el HTML estático, verificar localStorage
-        if (visibles === 0) {
-            console.log('⚠️ No hay tarjetas estáticas para esta categoría en el HTML');
-            console.log('💡 Los productos están en localStorage pero no hay tarjetas HTML para ellos');
-        }
-    }
 }
 
 
@@ -1603,55 +1412,64 @@ async function cargarProductos() {
     try {
         console.log('🔄 Cargando productos...');
         
-        let productosTemp = [];
-        
-        // ==========================================
-        // CARGA DESDE LOCALSTORAGE (FUNCIONA AHORA)
-        // TODO: Cuando Firebase esté disponible, cambiar a:
-        // if (window.firebaseService && window.firebaseService.initialized) { ... }
-        // ==========================================
-        console.log('💾 Cargando desde localStorage...');
-        productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        
-        // LIMPIAR DUPLICADOS
-        const productosUnicos = [];
-        const idsVistos = new Set();
-        
-        productosTemp.forEach(p => {
-            if (p.id && !idsVistos.has(p.id)) {
-                idsVistos.add(p.id);
-                productosUnicos.push(p);
+        // Intentar cargar desde Firebase primero
+        if (window.firebaseService && window.firebaseService.initialized) {
+            console.log('🔥 Cargando productos desde Firebase...');
+            const resultado = await window.firebaseService.getAllProducts();
+            
+            if (resultado.success && resultado.data.length > 0) {
+                productos = resultado.data;
+                console.log('✅ Productos cargados desde Firebase:', productos.length);
+                
+                // Sincronizar con localStorage como respaldo
+                localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+                return;
             }
-        });
-        
-        if (productosUnicos.length === 0) {
-            console.log('⚠️ No hay productos en localStorage. Cargando productos por defecto...');
-            productosUnicos.push(...obtenerProductosPorDefecto());
-            localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
-        } else if (productosTemp.length !== productosUnicos.length) {
-            console.log(`🗑️ Eliminando ${productosTemp.length - productosUnicos.length} productos duplicados`);
-            localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
         }
         
-        // FILTRAR: Solo productos ACTIVOS para catálogo público
-        const productosActivos = productosUnicos.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
+        // Si Firebase no está disponible o no hay productos, cargar desde localStorage
+        console.log('💾 Cargando productos desde localStorage...');
+    productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+    
+    // Si no hay productos en localStorage, usar los productos por defecto
+    if (productos.length === 0) {
+            console.log('📦 No hay productos, cargando productos por defecto...');
+        productos = obtenerProductosPorDefecto();
+        localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+            
+            // Intentar migrar a Firebase si está disponible
+            if (window.firebaseService && window.firebaseService.initialized) {
+                console.log('🚀 Migrando productos por defecto a Firebase...');
+                for (const producto of productos) {
+                    try {
+                        await window.firebaseService.saveProduct(producto);
+                    } catch (error) {
+                        console.error('❌ Error migrando producto:', producto.nombre, error);
+                    }
+                }
+            }
+        }
         
-        productos = productosActivos;
-        console.log(`✅ ${productos.length} productos ACTIVOS cargados (de ${productosUnicos.length} totales)`);
+        console.log('✅ Productos cargados:', productos.length);
         
     } catch (error) {
         console.error('❌ Error cargando productos:', error);
-        productos = [];
+        
+        // Fallback a localStorage
+        productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        if (productos.length === 0) {
+            productos = obtenerProductosPorDefecto();
+            localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+        }
+        
+        console.log('⚠️ Productos cargados desde fallback:', productos.length);
     }
 }
 
 function obtenerProductosPorDefecto() {
     return [
-        // GUAYABERAS - TODAS CON SUS IMÁGENES CORRECTAS
         {
-            id: 'guayabera-fem-1',
+            id: 'guayabera_001',
             nombre: 'Guayabera Amazónica Femenina',
             descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
             categoria: 'ropa',
@@ -1659,61 +1477,6 @@ function obtenerProductosPorDefecto() {
             stock: 15,
             estado: 'disponible',
             imagen: 'images/productos/Ropa/Guayabera/guayaberaFem1.jpg',
-            activo: true
-        },
-        {
-            id: 'guayabera-fem-2',
-            nombre: 'Guayabera Amazónica Femenina',
-            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
-            categoria: 'ropa',
-            precio: 65000,
-            stock: 15,
-            estado: 'disponible',
-            imagen: 'images/productos/Ropa/Guayabera/guayaberaFem2.jpg',
-            activo: true
-        },
-        {
-            id: 'guayabera-fem-3',
-            nombre: 'Guayabera Amazónica Femenina',
-            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
-            categoria: 'ropa',
-            precio: 65000,
-            stock: 15,
-            estado: 'disponible',
-            imagen: 'images/productos/Ropa/Guayabera/guayaberaFem3.jpg',
-            activo: true
-        },
-        {
-            id: 'guayabera-fem-4',
-            nombre: 'Guayabera Amazónica Femenina',
-            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
-            categoria: 'ropa',
-            precio: 65000,
-            stock: 15,
-            estado: 'disponible',
-            imagen: 'images/productos/Ropa/Guayabera/guayaberaFem4.jpg',
-            activo: true
-        },
-        {
-            id: 'guayabera-fem-5',
-            nombre: 'Guayabera Amazónica Femenina',
-            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
-            categoria: 'ropa',
-            precio: 65000,
-            stock: 15,
-            estado: 'disponible',
-            imagen: 'images/productos/Ropa/Guayabera/guayaberaFem5.jpg',
-            activo: true
-        },
-        {
-            id: 'guayabera-mas-1',
-            nombre: 'Guayabera Amazónica Masculina',
-            descripcion: 'Elegancia y tradición amazónica en cada puntada. Perfecta para ocasiones especiales.',
-            categoria: 'ropa',
-            precio: 65000,
-            stock: 10,
-            estado: 'disponible',
-            imagen: 'images/productos/Ropa/Guayabera/guayaberaMas1.jpg',
             activo: true
         },
         {

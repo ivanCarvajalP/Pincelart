@@ -1,4 +1,4 @@
-// Sistema de Login para PincelArt
+// Sistema de Login para PincelArt - Versión Original Verde
 class LoginSystem {
     constructor() {
         this.users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
@@ -9,6 +9,7 @@ class LoginSystem {
     init() {
         this.setupEventListeners();
         this.checkExistingSession();
+        this.createDefaultAdmin();
     }
 
     setupEventListeners() {
@@ -48,31 +49,6 @@ class LoginSystem {
             e.preventDefault();
             this.handleForgotPassword();
         });
-
-        // Validación de contraseñas en tiempo real
-        document.getElementById('confirmPassword').addEventListener('input', () => {
-            this.validatePasswordMatch();
-        });
-
-        // Prevenir envío accidental del formulario con Enter
-        document.getElementById('registerForm').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                // Solo enviar si todos los campos están llenos
-                const name = document.getElementById('registerName').value;
-                const email = document.getElementById('registerEmail').value;
-                const phone = document.getElementById('registerPhone').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const acceptTerms = document.getElementById('acceptTerms').checked;
-                
-                if (name && email && phone && password && confirmPassword && acceptTerms) {
-                    this.handleRegister();
-                } else {
-                    this.showMessage('Por favor, completa todos los campos antes de enviar.', 'error');
-                }
-            }
-        });
     }
 
     showForm(formType) {
@@ -86,68 +62,92 @@ class LoginSystem {
         
         // Limpiar mensajes
         this.clearMessages();
-        
-        // Solo limpiar formularios si no hay datos importantes
-        // No limpiar si el usuario está en medio de llenar un formulario
-        if (formType === 'login') {
-            // Solo limpiar el formulario de login si está vacío
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            if (!email && !password) {
-                this.clearForms();
+    }
+
+    clearMessages() {
+        const messageArea = document.getElementById('messageArea');
+        messageArea.innerHTML = '';
+    }
+
+    showMessage(message, type = 'info') {
+        const messageArea = document.getElementById('messageArea');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        messageDiv.textContent = message;
+        messageArea.appendChild(messageDiv);
+
+        // Auto-remover mensaje después de 5 segundos
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
             }
-        } else if (formType === 'register') {
-            // No limpiar el formulario de registro automáticamente
-            // Solo limpiar estilos de validación
-            document.querySelectorAll('input').forEach(input => {
-                input.style.borderColor = '#e0e0e0';
-            });
-        } else {
-            // Para otros formularios, limpiar normalmente
-            this.clearForms();
-        }
+        }, 5000);
+    }
+
+    validateEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    validatePassword(password) {
+        return password.length >= 6;
     }
 
     handleLogin() {
-        const email = document.getElementById('loginEmail').value;
+        const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
 
-        const user = this.users.find(u => u.email === email && u.password === password);
-
-        if (user) {
-            this.currentUser = user;
-            localStorage.setItem('pincelart_current_user', JSON.stringify(user));
-            
-            if (rememberMe) {
-                localStorage.setItem('pincelart_remember_me', 'true');
-            }
-
-            this.showMessage('¡Bienvenido de vuelta!', 'success');
-            
-            setTimeout(() => {
-                window.location.href = 'main.html';
-            }, 1500);
-        } else {
-            this.showMessage('Credenciales incorrectas. Inténtalo de nuevo.', 'error');
+        if (!email || !password) {
+            this.showMessage('Por favor, completa todos los campos.', 'error');
+            return;
         }
-    }
 
-    handleRegister() {
-        const name = document.getElementById('registerName').value;
-        const email = document.getElementById('registerEmail').value;
-        const phone = document.getElementById('registerPhone').value;
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        const acceptTerms = document.getElementById('acceptTerms').checked;
-
-        // Validaciones
         if (!this.validateEmail(email)) {
             this.showMessage('Por favor, ingresa un correo electrónico válido.', 'error');
             return;
         }
 
-        if (password.length < 6) {
+        const user = this.users.find(u => u.email === email && u.password === password);
+        
+        if (user) {
+            this.currentUser = user;
+            localStorage.setItem('pincelart_current_user', JSON.stringify(user));
+            
+            console.log('🔐 Usuario logueado:', user.nombre, 'Rol:', user.rol);
+            
+            this.showMessage('¡Inicio de sesión exitoso! Redirigiendo...', 'success');
+            
+            setTimeout(() => {
+                console.log('🚀 Redirigiendo a main.html...');
+                // TODOS van a main.html (incluidos administradores)
+                // El botón de administrador rojo en main.html será para entrar al panel
+                window.location.href = 'main.html';
+            }, 1500);
+        } else {
+            this.showMessage('Credenciales incorrectas. Verifica tu email y contraseña.', 'error');
+        }
+    }
+
+    handleRegister() {
+        const name = document.getElementById('registerName').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const phone = document.getElementById('registerPhone').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const acceptTerms = document.getElementById('acceptTerms').checked;
+
+        // Validaciones
+        if (!name || !email || !phone || !password || !confirmPassword) {
+            this.showMessage('Por favor, completa todos los campos.', 'error');
+            return;
+        }
+
+        if (!this.validateEmail(email)) {
+            this.showMessage('Por favor, ingresa un correo electrónico válido.', 'error');
+            return;
+        }
+
+        if (!this.validatePassword(password)) {
             this.showMessage('La contraseña debe tener al menos 6 caracteres.', 'error');
             return;
         }
@@ -168,18 +168,15 @@ class LoginSystem {
             return;
         }
 
-        // Crear nuevo usuario (solo clientes pueden registrarse libremente)
+        // Crear nuevo usuario
         const newUser = {
             id: Date.now().toString(),
-            name: name,
+            nombre: name,
             email: email,
-            phone: phone,
+            telefono: phone,
             password: password,
-            rol: 'cliente', // Solo clientes pueden registrarse
-            activo: true,
-            permisos: ['comprar', 'ver_productos'], // Permisos de cliente
-            creadoPor: null, // ID del usuario que lo creó
-            createdAt: new Date().toISOString(),
+            rol: 'cliente',
+            fechaRegistro: new Date().toISOString(),
             carrito: [],
             favoritos: []
         };
@@ -195,7 +192,7 @@ class LoginSystem {
     }
 
     handleForgotPassword() {
-        const email = document.getElementById('forgotEmail').value;
+        const email = document.getElementById('forgotEmail').value.trim();
 
         if (!this.validateEmail(email)) {
             this.showMessage('Por favor, ingresa un correo electrónico válido.', 'error');
@@ -203,125 +200,73 @@ class LoginSystem {
         }
 
         const user = this.users.find(u => u.email === email);
-
+        
         if (user) {
-            // En un sistema real, aquí enviarías un email
-            this.showMessage(`Se ha enviado un código de recuperación a ${email}. Revisa tu correo electrónico.`, 'info');
+            this.showMessage('Se han enviado las instrucciones de recuperación a tu correo.', 'success');
         } else {
             this.showMessage('No se encontró una cuenta con este correo electrónico.', 'error');
         }
     }
 
-    validateEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    validatePasswordMatch() {
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        if (confirmPassword && password !== confirmPassword) {
-            document.getElementById('confirmPassword').style.borderColor = '#f44336';
-        } else {
-            document.getElementById('confirmPassword').style.borderColor = '#e0e0e0';
-        }
-    }
-
-    showMessage(message, type) {
-        const messageContainer = document.getElementById('message-container');
-        messageContainer.textContent = message;
-        messageContainer.className = `message-container ${type}`;
-        
-        setTimeout(() => {
-            this.clearMessages();
-        }, 5000);
-    }
-
-    clearMessages() {
-        const messageContainer = document.getElementById('message-container');
-        messageContainer.className = 'message-container';
-        messageContainer.textContent = '';
-    }
-
-    clearForms() {
-        document.querySelectorAll('form').forEach(form => {
-            form.reset();
-        });
-        
-        // Limpiar estilos de validación
-        document.querySelectorAll('input').forEach(input => {
-            input.style.borderColor = '#e0e0e0';
-        });
-    }
-
     checkExistingSession() {
-        const rememberMe = localStorage.getItem('pincelart_remember_me');
+        // Si ya hay sesión activa, redirigir a main.html
+        if (this.currentUser && this.currentUser.nombre) {
+            window.location.href = 'main.html';
+        }
+    }
+
+    createDefaultAdmin() {
+        const adminExists = this.users.find(u => u.email === 'pivancarvajal@gmail.com');
         
-        if (rememberMe === 'true' && this.currentUser) {
-            // Usuario ya logueado, redirigir directamente
-            this.showMessage('Ya tienes una sesión activa. Redirigiendo...', 'info');
-            setTimeout(() => {
-                window.location.href = 'main.html';
-            }, 2000);
+        if (!adminExists) {
+            const adminUser = {
+                id: 'admin_001',
+                nombre: 'Pivan Carvajal',
+                email: 'pivancarvajal@gmail.com',
+                telefono: '3001234567',
+                password: 'super123',
+                rol: 'super_usuario',
+                permisos: ['*'],
+                fechaRegistro: new Date().toISOString(),
+                carrito: [],
+                favoritos: []
+            };
+
+            this.users.push(adminUser);
+            localStorage.setItem('pincelart_users', JSON.stringify(this.users));
         }
-    }
-
-    // Métodos para manejar datos del usuario
-    getUserData() {
-        return this.currentUser;
-    }
-
-    updateUserData(userData) {
-        if (this.currentUser) {
-            const userIndex = this.users.findIndex(u => u.id === this.currentUser.id);
-            if (userIndex !== -1) {
-                this.users[userIndex] = { ...this.users[userIndex], ...userData };
-                this.currentUser = this.users[userIndex];
-                localStorage.setItem('pincelart_users', JSON.stringify(this.users));
-                localStorage.setItem('pincelart_current_user', JSON.stringify(this.currentUser));
-            }
-        }
-    }
-
-    logout() {
-        this.currentUser = null;
-        localStorage.removeItem('pincelart_current_user');
-        localStorage.removeItem('pincelart_remember_me');
-        window.location.href = 'main.html';
     }
 }
 
-// Inicializar el sistema de login cuando se carga la página
+// Función global para mostrar términos
+function mostrarTerminos() {
+    alert(`TÉRMINOS Y CONDICIONES DE PINCELART
+
+1. ACEPTACIÓN DE TÉRMINOS
+Al usar nuestros servicios, aceptas estos términos y condiciones.
+
+2. USO DEL SERVICIO
+- Debes ser mayor de 18 años o tener autorización parental
+- No puedes usar el servicio para actividades ilegales
+- Debes proporcionar información veraz y actualizada
+
+3. PRODUCTOS Y SERVICIOS
+- Los productos son personalizados según especificaciones
+- Los tiempos de entrega pueden variar
+- Se respeta la propiedad intelectual
+
+4. PRIVACIDAD
+- Respetamos tu privacidad según nuestra política
+- No compartimos información personal con terceros
+- Puedes solicitar eliminación de datos
+
+5. MODIFICACIONES
+Nos reservamos el derecho de modificar estos términos.
+
+Para más información, contacta: info@pincelart.com`);
+}
+
+// Inicializar el sistema cuando se carga la página
 document.addEventListener('DOMContentLoaded', () => {
-    new LoginSystem();
+    window.loginSystem = new LoginSystem();
 });
-
-// Función global para logout (disponible en toda la aplicación)
-function logout() {
-    const loginSystem = new LoginSystem();
-    loginSystem.logout();
-}
-
-// Función para obtener datos del usuario actual
-function getCurrentUser() {
-    return JSON.parse(localStorage.getItem('pincelart_current_user'));
-}
-
-// Función para actualizar carrito del usuario
-function updateUserCart(carrito) {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        const loginSystem = new LoginSystem();
-        loginSystem.updateUserData({ carrito: carrito });
-    }
-}
-
-// Función para actualizar favoritos del usuario
-function updateUserFavorites(favoritos) {
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        const loginSystem = new LoginSystem();
-        loginSystem.updateUserData({ favoritos: favoritos });
-    }
-}

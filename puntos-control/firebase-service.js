@@ -95,21 +95,6 @@ class FirebaseService {
         }
     }
 
-    async deleteUser(userId) {
-        if (!this.initialized) {
-            return this.deleteUserLocalStorage(userId);
-        }
-
-        try {
-            await this.db.collection('usuarios').doc(userId).delete();
-            console.log('✅ Usuario eliminado de Firebase');
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error eliminando usuario de Firebase:', error);
-            return this.deleteUserLocalStorage(userId);
-        }
-    }
-
     // Métodos para productos
     async saveProduct(productData) {
         if (!this.initialized) {
@@ -190,7 +175,7 @@ class FirebaseService {
         }
 
         try {
-            const productsSnapshot = await this.db.collection('productos').orderBy('fechaCreacion', 'desc').get();
+            const productsSnapshot = await this.db.collection('productos').get();
             const products = [];
             productsSnapshot.forEach(doc => {
                 products.push({ id: doc.id, ...doc.data() });
@@ -199,141 +184,6 @@ class FirebaseService {
         } catch (error) {
             console.error('❌ Error obteniendo productos de Firebase:', error);
             return this.getAllProductsLocalStorage();
-        }
-    }
-
-    async addProduct(producto) {
-        if (!this.initialized) {
-            return this.saveProductLocalStorage(producto);
-        }
-
-        try {
-            const docRef = await this.db.collection('productos').add({
-                ...producto,
-                fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
-                fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            console.log('✅ Producto agregado con ID:', docRef.id);
-            return { success: true, id: docRef.id };
-        } catch (error) {
-            console.error('❌ Error agregando producto:', error);
-            return this.saveProductLocalStorage(producto);
-        }
-    }
-
-    async getProduct(productId) {
-        if (!this.initialized) {
-            const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-            const product = products.find(p => p.id === productId);
-            return { success: !!product, data: product };
-        }
-
-        try {
-            const doc = await this.db.collection('productos').doc(productId).get();
-            if (doc.exists) {
-                return { success: true, data: { id: doc.id, ...doc.data() } };
-            } else {
-                return { success: false, error: 'Producto no encontrado' };
-            }
-        } catch (error) {
-            console.error('❌ Error obteniendo producto:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async updateProduct(productId, datosActualizados) {
-        if (!this.initialized) {
-            const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-            const productIndex = products.findIndex(p => p.id === productId);
-            if (productIndex !== -1) {
-                products[productIndex] = { ...products[productIndex], ...datosActualizados };
-                localStorage.setItem('pincelart_productos', JSON.stringify(products));
-                return { success: true };
-            }
-            return { success: false, error: 'Producto no encontrado' };
-        }
-
-        try {
-            const docRef = this.db.collection('productos').doc(productId);
-            
-            // Usar set con merge para crear o actualizar
-            await docRef.set({
-                ...datosActualizados,
-                fechaActualizacion: new Date().toISOString()
-            }, { merge: true });
-            
-            console.log('✅ Producto actualizado/creado en Firebase:', productId);
-            
-            // Devolver éxito
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error actualizando producto:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    async deleteProduct(productId) {
-        if (!this.initialized) {
-            const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-            const productsActualizados = products.filter(p => p.id !== productId);
-            localStorage.setItem('pincelart_productos', JSON.stringify(productsActualizados));
-            return { success: true };
-        }
-
-        try {
-            await this.db.collection('productos').doc(productId).delete();
-            console.log('✅ Producto eliminado:', productId);
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error eliminando producto:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Listeners en tiempo real para sincronización automática
-    onProductosChange(callback) {
-        if (!this.initialized) {
-            console.warn('⚠️ Firebase no disponible, usando eventos de localStorage');
-            // Crear listener para cambios en localStorage
-            const originalSetItem = Storage.prototype.setItem;
-            Storage.prototype.setItem = function(key, value) {
-                originalSetItem.apply(this, arguments);
-                if (key === 'pincelart_productos') {
-                    callback(null, JSON.parse(value));
-                }
-            };
-            return;
-        }
-
-        try {
-            console.log('👂 Configurando listener en tiempo real de productos...');
-            
-            this.db.collection('productos').onSnapshot(
-                (snapshot) => {
-                    console.log('🔥 Cambio detectado en Firebase productos');
-                    const productos = [];
-                    snapshot.forEach(doc => {
-                        productos.push({ id: doc.id, ...doc.data() });
-                    });
-                    
-                    // Actualizar localStorage
-                    localStorage.setItem('pincelart_productos', JSON.stringify(productos));
-                    
-                    // Disparar evento personalizado
-                    window.dispatchEvent(new CustomEvent('productos-actualizados', { 
-                        detail: { productos } 
-                    }));
-                    
-                    // Llamar al callback
-                    callback(null, productos);
-                },
-                (error) => {
-                    console.error('❌ Error en listener de productos:', error);
-                    callback(error, null);
-                }
-            );
-        } catch (error) {
-            console.error('❌ Error configurando listener:', error);
         }
     }
 
@@ -395,19 +245,6 @@ class FirebaseService {
             return { success: true, data: users };
         } catch (error) {
             console.error('❌ Error obteniendo usuarios de localStorage:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    deleteUserLocalStorage(userId) {
-        try {
-            const users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
-            const filteredUsers = users.filter(u => u.id !== userId);
-            localStorage.setItem('pincelart_users', JSON.stringify(filteredUsers));
-            console.log('✅ Usuario eliminado de localStorage');
-            return { success: true };
-        } catch (error) {
-            console.error('❌ Error eliminando usuario de localStorage:', error);
             return { success: false, error: error.message };
         }
     }

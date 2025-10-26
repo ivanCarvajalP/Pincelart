@@ -86,16 +86,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     window.addEventListener('productos-actualizados', function(event) {
         console.log('📢 Evento productos-actualizados recibido');
         actualizarCatalogoDesdeGestión();
-        
-        // ACTUALIZAR FILTROS con nuevas categorías
-        actualizarFiltrosCategorias();
     });
-    
-    // Función para actualizar filtros de categorías dinámicamente
-    function actualizarFiltrosCategorias() {
-        console.log('🔄 Actualizando filtros dinámicamente...');
-        initFiltrosCategorias();
-    }
     
     // Función para actualizar catálogo con datos de Gestión de Productos
     function actualizarCatalogoDesdeGestión() {
@@ -120,18 +111,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         console.log(`🔄 Sincronizando catálogo con ${productosUnicos.length} productos ÚNICOS de Gestión (antes: ${productosGestion.length})`);
         
-        // ACTUALIZAR localStorage con TODOS los productos (para gestión)
+        // Actualizar localStorage con productos únicos
         localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
-        
-        // FILTRAR: Solo productos ACTIVOS para el catálogo público
-        const productosActivos = productosUnicos.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
-        
-        console.log(`👥 Catálogo público: ${productosActivos.length} productos activos de ${productosUnicos.length} totales`);
-        
-        // Trabajar con productos activos para actualizar el catálogo
-        productosGestion = productosActivos;
+        productosGestion = productosUnicos;
         
         // Actualizar tarjetas principales
         document.querySelectorAll('.producto-card').forEach(tarjeta => {
@@ -178,14 +160,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 }
                 
                 console.log(`✅ Actualizado: ${dataProducto} - $${producto.precio}`);
-            } else {
-                console.log(`⚠️ No se encontró producto para: ${dataProducto} en categoría ${dataCategoria}`);
             }
         });
         
-        // Actualizar productos globales SOLO con activos
-        productos = productosActivos;
-        console.log(`✅ Variable global 'productos' actualizada con ${productos.length} productos ACTIVOS`);
+        // Actualizar productos globales
+        productos = productosGestion;
     }
     
 // Debug para verificar imagen de pulsera (mejorado)
@@ -948,15 +927,7 @@ function obtenerProductosTipo(tipo) {
     
     if (productosGestion.length > 0) {
         console.log(`✅ Usando ${productosGestion.length} productos de Gestión de Productos`);
-        
-        // FILTRAR: Solo productos ACTIVOS para modales "Ver Más"
-        const productosActivos = productosGestion.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
-        
-        console.log(`👥 Filtrando a ${productosActivos.length} productos ACTIVOS de ${productosGestion.length} totales`);
-        
-        return productosActivos.filter(p => {
+        return productosGestion.filter(p => {
             const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(tipo.toLowerCase());
             const nombreMatch = p.nombre && p.nombre.toLowerCase().includes(tipo.toLowerCase());
             return imagenMatch || nombreMatch;
@@ -1107,36 +1078,11 @@ function obtenerProductosTipo(tipo) {
     return resultado;
 }
 
-// Filtros de categorías DINÁMICOS
+// Filtros de categorías
 function initFiltrosCategorias() {
-    // Actualizar filtros dinámicamente desde localStorage
-    if (!productos || productos.length === 0) {
-        console.log('⚠️ No hay productos para crear filtros');
-        return;
-    }
-    
-    // Obtener categorías únicas
-    const categorias = [...new Set(productos.map(p => p.categoria))];
-    const filtrosContainer = document.querySelector('.filtros-categorias');
-    
-    if (!filtrosContainer) {
-        console.error('❌ No se encontró contenedor de filtros');
-        return;
-    }
-    
-    // Limpiar y crear filtros dinámicos
-    let filtrosHTML = `<button class="filtro-btn active" data-categoria="todos">Todos</button>`;
-    
-    categorias.forEach(categoria => {
-        const cantidad = productos.filter(p => p.categoria === categoria).length;
-        filtrosHTML += `<button class="filtro-btn" data-categoria="${categoria.toLowerCase()}">${categoria} (${cantidad})</button>`;
-    });
-    
-    filtrosContainer.innerHTML = filtrosHTML;
-    console.log('✅ Filtros dinámicos creados:', categorias);
-    
-    // Agregar event listeners
     const filtros = document.querySelectorAll('.filtro-btn');
+    const productos = document.querySelectorAll('.producto-card');
+    
     filtros.forEach(filtro => {
         filtro.addEventListener('click', () => {
             // Remover clase active de todos los filtros
@@ -1145,51 +1091,18 @@ function initFiltrosCategorias() {
             filtro.classList.add('active');
             
             const categoria = filtro.getAttribute('data-categoria');
-            console.log('🔍 Filtrando por:', categoria);
             
-            filtrarPorCategoria(categoria);
+            productos.forEach(producto => {
+                if (categoria === 'todos' || producto.getAttribute('data-categoria') === categoria) {
+                    producto.style.display = 'block';
+                    producto.classList.remove('hidden');
+                } else {
+                    producto.style.display = 'none';
+                    producto.classList.add('hidden');
+                }
+            });
         });
     });
-}
-
-// Función para filtrar productos por categoría
-function filtrarPorCategoria(categoria) {
-    console.log('🔍 Filtrando catálogo por:', categoria);
-    
-    const tarjetas = document.querySelectorAll('.producto-card');
-    
-    if (categoria === 'todos') {
-        tarjetas.forEach(tarjeta => {
-            tarjeta.style.display = 'block';
-            tarjeta.classList.remove('hidden');
-        });
-        console.log('✅ Mostrando todos los productos (', tarjetas.length, 'tarjetas)');
-    } else {
-        // Primero ocultar todas
-        tarjetas.forEach(tarjeta => {
-            tarjeta.style.display = 'none';
-            tarjeta.classList.add('hidden');
-        });
-        
-        // Mostrar solo las de la categoría seleccionada
-        let visibles = 0;
-        tarjetas.forEach(tarjeta => {
-            const dataCategoria = tarjeta.getAttribute('data-categoria');
-            if (dataCategoria && dataCategoria.toLowerCase() === categoria.toLowerCase()) {
-                tarjeta.style.display = 'block';
-                tarjeta.classList.remove('hidden');
-                visibles++;
-            }
-        });
-        
-        console.log(`✅ Mostrando ${visibles} productos de categoría "${categoria}"`);
-        
-        // Si no hay productos en el HTML estático, verificar localStorage
-        if (visibles === 0) {
-            console.log('⚠️ No hay tarjetas estáticas para esta categoría en el HTML');
-            console.log('💡 Los productos están en localStorage pero no hay tarjetas HTML para ellos');
-        }
-    }
 }
 
 
@@ -1601,17 +1514,10 @@ function mostrarBotonAdmin() {
 
 async function cargarProductos() {
     try {
-        console.log('🔄 Cargando productos...');
+        console.log('🔄 Cargando productos DESDE LOCALSTORAGE ÚNICAMENTE...');
         
-        let productosTemp = [];
-        
-        // ==========================================
-        // CARGA DESDE LOCALSTORAGE (FUNCIONA AHORA)
-        // TODO: Cuando Firebase esté disponible, cambiar a:
-        // if (window.firebaseService && window.firebaseService.initialized) { ... }
-        // ==========================================
-        console.log('💾 Cargando desde localStorage...');
-        productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        // CARGAR SOLO DESDE LOCALSTORAGE (GESTIÓN DE PRODUCTOS)
+        let productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
         
         // LIMPIAR DUPLICADOS
         const productosUnicos = [];
@@ -1633,13 +1539,8 @@ async function cargarProductos() {
             localStorage.setItem('pincelart_productos', JSON.stringify(productosUnicos));
         }
         
-        // FILTRAR: Solo productos ACTIVOS para catálogo público
-        const productosActivos = productosUnicos.filter(p => 
-            p.estado === 'activo' || p.estado === 'disponible'
-        );
-        
-        productos = productosActivos;
-        console.log(`✅ ${productos.length} productos ACTIVOS cargados (de ${productosUnicos.length} totales)`);
+        productos = productosUnicos;
+        console.log(`✅ ${productos.length} productos ÚNICOS cargados desde localStorage`);
         
     } catch (error) {
         console.error('❌ Error cargando productos:', error);

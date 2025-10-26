@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Limpiar Duplicados</title>
+</head>
+<body>
+    <h1>Limpiando duplicados...</h1>
+    <p>Puedes cerrar esta página cuando termine.</p>
+    
+    <script>
+        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        console.log('ANTES:', productos.length);
+        
+        const unicos = productos.filter((v, i) => productos.findIndex(p => p.id === v.id) === i);
+        localStorage.setItem('pincelart_productos', JSON.stringify(unicos));
+        
+        console.log('DESPUÉS:', unicos.length, 'productos únicos');
+        
+        document.body.innerHTML = `
+            <h1>✅ Limpieza completada</h1>
+            <p>ANTES: ${productos.length} productos</p>
+            <p>DESPUÉS: ${unicos.length} productos únicos</p>
+            <p>Ahora cierra esta pestaña y recarga admin-panel.html</p>
+        `;
+    </script>
+</body>
+</html>
+

@@ -13,9 +13,17 @@
         
         <div class="login-box">
             <div class="login-header">
-                <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="login-logo">
+                <div class="logo-container">
+                    <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="login-logo">
+                    <div class="logo-decoration">🌿</div>
+                </div>
                 <h1>PincelArt Amazonía</h1>
                 <p>Productos personalizados con esencia amazónica</p>
+                <div class="header-decoration">
+                    <span>🌺</span>
+                    <span>🦋</span>
+                    <span>🌿</span>
+                </div>
             </div>
 
             <!-- Formulario de Login -->
@@ -70,7 +78,7 @@
                     
                     <div class="input-group">
                         <label for="registerPassword">Contraseña</label>
-                        <input type="password" id="registerPassword" name="password" required minlength="6">
+                        <input type="password" id="registerPassword" name="password" required>
                     </div>
                     
                     <div class="input-group">
@@ -82,7 +90,7 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="acceptTerms" required>
                             <span class="checkmark"></span>
-                            Acepto los <a href="#" class="terms-link">términos y condiciones</a>
+                            Acepto los <a href="#" class="terms-link" onclick="mostrarTerminos()">términos y condiciones</a>
                         </label>
                     </div>
                     
@@ -94,7 +102,7 @@
                 </form>
             </div>
 
-            <!-- Formulario de Recuperar Contraseña -->
+            <!-- Formulario de Recuperación -->
             <div id="forgot-form" class="form-container">
                 <h2>Recuperar Contraseña</h2>
                 <form id="forgotForm">
@@ -103,7 +111,7 @@
                         <input type="email" id="forgotEmail" name="email" required>
                     </div>
                     
-                    <button type="submit" class="btn-forgot">Enviar Código de Recuperación</button>
+                    <button type="submit" class="btn-login">Enviar Instrucciones</button>
                     
                     <div class="form-switch">
                         <p><a href="#" id="backToLogin">← Volver al inicio de sesión</a></p>
@@ -111,12 +119,11 @@
                 </form>
             </div>
 
-            <!-- Mensajes de estado -->
-            <div id="message-container" class="message-container"></div>
+            <!-- Área de mensajes -->
+            <div id="messageArea"></div>
         </div>
     </div>
 
     <script src="login.js"></script>
 </body>
 </html>
-
