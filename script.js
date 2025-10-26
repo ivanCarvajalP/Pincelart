@@ -1614,6 +1614,13 @@ async function cargarProductos() {
         productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
         console.log(`📊 Productos en localStorage: ${productosTemp.length}`);
         
+        // SI hay muy pocos productos (menos de 100), limpiar y cargar desde migración
+        if (productosTemp.length > 0 && productosTemp.length < 100) {
+            console.log('⚠️ Detectados pocos productos en localStorage. Limpiando y cargando 166 productos...');
+            localStorage.removeItem('pincelart_productos');
+            productosTemp = [];
+        }
+        
         // LIMPIAR DUPLICADOS
         const productosUnicos = [];
         const idsVistos = new Set();
