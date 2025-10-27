@@ -4,13 +4,14 @@ class LoginSystem {
         this.users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
         this.currentUser = JSON.parse(localStorage.getItem('pincelart_current_user')) || null;
         this.init();
-        this.loadUsersFromFirebase();
     }
 
-    init() {
+    async init() {
         this.setupEventListeners();
         this.checkExistingSession();
-        this.createDefaultAdmin();
+        // Esperar a que se carguen usuarios de Firebase antes de crear admin
+        await this.loadUsersFromFirebase();
+        await this.createDefaultAdmin();
     }
 
     setupEventListeners() {
@@ -252,15 +253,17 @@ class LoginSystem {
         }
     }
 
-    createDefaultAdmin() {
+    async createDefaultAdmin() {
         const adminExists = this.users.find(u => u.email === 'pivancarvajal@gmail.com');
         
         if (!adminExists) {
             const adminUser = {
                 id: 'admin_001',
-                nombre: 'Pivan Carvajal',
+                name: 'Ivan Dario Carvajal Reina',
+                nombre: 'Ivan Dario Carvajal Reina',
                 email: 'pivancarvajal@gmail.com',
-                telefono: '3001234567',
+                phone: '3000000000',
+                telefono: '3000000000',
                 password: 'super123',
                 rol: 'super_usuario',
                 permisos: ['*'],
@@ -271,6 +274,16 @@ class LoginSystem {
 
             this.users.push(adminUser);
             localStorage.setItem('pincelart_users', JSON.stringify(this.users));
+            
+            // Guardar en Firebase si está disponible
+            if (window.firebaseService && window.firebaseService.initialized) {
+                try {
+                    await window.firebaseService.saveUser(adminUser);
+                    console.log('✅ Super usuario guardado en Firebase');
+                } catch (error) {
+                    console.error('❌ Error guardando super usuario en Firebase:', error);
+                }
+            }
         }
     }
 }

@@ -3101,7 +3101,7 @@ async function crearProducto(form) {
             categoria: categoria,
             precio: parseInt(formData.get('precio')),
             stock: parseInt(formData.get('stock')),
-            estado: formData.get('estado'),
+            estado: 'activo', // SIEMPRE activo al crear (para que se vea en catálogo)
             fechaCreacion: new Date().toISOString(),
             fechaActualizacion: new Date().toISOString()
         };
