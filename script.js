@@ -600,32 +600,90 @@ function initEcommerce() {
             console.log('Clases del elemento:', e.target.classList);
             
             if (e.target.classList.contains('btn-carrito')) {
-                const productoCard = e.target.closest('.producto-card');
-                if (productoCard) {
-                    const productoId = productoCard.dataset.producto;
-                    console.log('Botón carrito clickeado, producto ID:', productoId);
-                    console.log('Usuario actual:', currentUser);
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Buscar primero en el contenedor del catálogo
+                let productoCard = e.target.closest('.producto-card');
+                
+                // Si no encuentra, buscar en el contenedor del modal
+                if (!productoCard) {
+                    productoCard = e.target.closest('.producto-card-modal');
+                }
+                
+                // Intentar obtener el ID del contenedor
+                let productoId = productoCard ? productoCard.dataset.producto : null;
+                
+                // Si no hay contenedor, obtener el ID directamente del botón
+                if (!productoId) {
+                    productoId = e.target.dataset.producto;
+                }
+                
+                console.log('Botón carrito clickeado, producto ID:', productoId);
+                console.log('Usuario actual:', currentUser);
+                
+                if (productoId) {
                     agregarAlCarrito(productoId);
                 } else {
-                    console.error('No se encontró .producto-card padre');
+                    console.error('No se pudo obtener el ID del producto');
                 }
             }
             
             if (e.target.classList.contains('btn-favorito')) {
-                const productoCard = e.target.closest('.producto-card');
-                if (productoCard) {
-                    const productoId = productoCard.dataset.producto;
-                    console.log('Botón favorito clickeado, producto ID:', productoId);
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Buscar primero en el contenedor del catálogo
+                let productoCard = e.target.closest('.producto-card');
+                
+                // Si no encuentra, buscar en el contenedor del modal
+                if (!productoCard) {
+                    productoCard = e.target.closest('.producto-card-modal');
+                }
+                
+                // Intentar obtener el ID del contenedor
+                let productoId = productoCard ? productoCard.dataset.producto : null;
+                
+                // Si no hay contenedor, obtener el ID directamente del botón
+                if (!productoId) {
+                    productoId = e.target.dataset.producto;
+                }
+                
+                console.log('Botón favorito clickeado, producto ID:', productoId);
+                
+                if (productoId) {
                     toggleFavorito(productoId);
+                } else {
+                    console.error('No se pudo obtener el ID del producto');
                 }
             }
             
             if (e.target.classList.contains('btn-compra')) {
-                const productoCard = e.target.closest('.producto-card');
-                if (productoCard) {
-                    const productoId = productoCard.dataset.producto;
-                    console.log('Botón compra clickeado, producto ID:', productoId);
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Buscar primero en el contenedor del catálogo
+                let productoCard = e.target.closest('.producto-card');
+                
+                // Si no encuentra, buscar en el contenedor del modal
+                if (!productoCard) {
+                    productoCard = e.target.closest('.producto-card-modal');
+                }
+                
+                // Intentar obtener el ID del contenedor
+                let productoId = productoCard ? productoCard.dataset.producto : null;
+                
+                // Si no hay contenedor, obtener el ID directamente del botón
+                if (!productoId) {
+                    productoId = e.target.dataset.producto;
+                }
+                
+                console.log('Botón compra clickeado, producto ID:', productoId);
+                
+                if (productoId) {
                     comprarAhora(productoId);
+                } else {
+                    console.error('No se pudo obtener el ID del producto');
                 }
             }
             
