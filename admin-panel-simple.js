@@ -1690,30 +1690,43 @@ async function crearProducto(form) {
             // Subir imagen a Firebase Storage
             if (window.firebaseService && window.firebaseService.initialized) {
                 try {
+                    console.log('📸 Subiendo imagen a Firebase Storage...');
                     nuevoProducto.imagen = await window.firebaseService.uploadImage(imagenFile, productoId);
                     nuevoProducto.id = productoId;
+                    console.log('✅ Imagen subida:', nuevoProducto.imagen.substring(0, 50) + '...');
                 } catch (error) {
-                    console.error('Error subiendo imagen:', error);
-                    nuevoProducto.imagen = null;
+                    console.error('❌ Error subiendo imagen:', error);
+                    // Fallback: convertir a base64
+                    console.log('🔄 Convirtiendo a base64...');
+                    nuevoProducto.imagen = await procesarImagenNueva(imagenFile, productoId);
                     nuevoProducto.id = productoId;
                 }
             } else {
                 // Fallback: guardar como base64
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    nuevoProducto.imagen = e.target.result;
-                };
-                reader.readAsDataURL(imagenFile);
+                console.log('🔄 Convirtiendo imagen a base64...');
+                nuevoProducto.imagen = await procesarImagenNueva(imagenFile, productoId);
                 nuevoProducto.id = productoId;
             }
         } else {
             nuevoProducto.id = `producto-${Date.now()}`;
             nuevoProducto.imagen = 'images/Logo/logo-pincelart.jpg';
+            console.log('ℹ️ No se seleccionó imagen, usando imagen por defecto');
         }
+        
+        console.log('📦 Producto preparado con ID:', nuevoProducto.id);
+        console.log('📦 Producto:', JSON.stringify(nuevoProducto, null, 2));
         
         // Guardar producto en Firebase
         if (window.firebaseService && window.firebaseService.initialized) {
-            await window.firebaseService.addProduct(nuevoProducto);
+            console.log('🔥 Guardando producto en Firebase...');
+            const resultado = await window.firebaseService.addProduct(nuevoProducto);
+            if (resultado && resultado.success) {
+                console.log('✅ Producto guardado en Firebase exitosamente con ID:', resultado.id);
+            } else {
+                console.error('❌ Error guardando en Firebase:', resultado);
+            }
+        } else {
+            console.warn('⚠️ Firebase no está inicializado');
         }
         
         // Guardar en localStorage también
@@ -2880,19 +2893,22 @@ async function actualizarProducto(productoId, form) {
         }
         
         // ==========================================
-        // ACTUALIZAR EN FIREBASE (OPCIONAL POR AHORA)
-        // TODO: Cuando Firebase esté disponible, descomentar este bloque
+        // ACTUALIZAR EN FIREBASE
         // ==========================================
-        // Actualizar en Firebase SIEMPRE que esté disponible
         if (window.firebaseService && window.firebaseService.initialized) {
+            console.log('🔥 Actualizando producto en Firebase:', productoId);
             try {
-                await window.firebaseService.updateProduct(productoId, productoActualizado);
-                console.log('✅ Producto actualizado en Firebase');
+                const resultado = await window.firebaseService.updateProduct(productoId, productoActualizado);
+                if (resultado && resultado.success) {
+                    console.log('✅ Producto actualizado en Firebase exitosamente');
+                } else {
+                    console.error('❌ Error actualizando en Firebase:', resultado);
+                }
             } catch (error) {
-                console.warn('⚠️ Error actualizando en Firebase (continuando con localStorage):', error);
+                console.error('❌ Error actualizando en Firebase:', error);
             }
         } else {
-            console.log('ℹ️ Firebase no disponible, guardando solo en localStorage (esto es normal por ahora)');
+            console.warn('⚠️ Firebase no está inicializado, guardando solo en localStorage');
         }
         
         // Obtener productos actuales

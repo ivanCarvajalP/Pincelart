@@ -193,9 +193,92 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
         
+        // CR闭环AR TARJETAS DINÁMICAS PARA PRODUCTOS NUEVOS
+        crearTarjetasParaProductosNuevos(productosActivos);
+        
         // Actualizar productos globales SOLO con activos
         productos = productosActivos;
         console.log(`✅ Variable global 'productos' actualizada con ${productos.length} productos ACTIVOS`);
+    }
+    
+    // Función para crear tarjetas dinámicas para productos nuevos
+    function crearTarjetasParaProductosNuevos(productosActivos) {
+        const gridProductos = document.querySelector('.grid-productos');
+        if (!gridProductos) {
+            console.log('⚠️ No se encontró el grid de productos');
+            return;
+        }
+        
+        // Obtener productos que YA tienen tarjeta en el HTML
+        const tarjetasExistentes = Array.from(gridProductos.querySelectorAll('.producto-card'));
+        const productosConTarjeta = new Set();
+        tarjetasExistentes.forEach(tarjeta => {
+            const productoId = tarjeta.getAttribute('data-id') || 
+                             tarjeta.getAttribute('data-producto');
+            if (productoId) {
+                productosConTarjeta.add(productoId);
+            }
+        });
+        
+        console.log(`📋 Tarjetas existentes en HTML: ${productosConTarjeta.size}`);
+        console.log(`📦 Productos activos a verificar: ${productosActivos.length}`);
+        
+        // Encontrar productos sin tarjeta
+        const productosSinTarjeta = productosActivos.filter(p => {
+            // Verificar si el producto ya tiene tarjeta
+            const tieneTarjeta = productosConTarjeta.has(p.id) || 
+                               productosConTarjeta.has(p.nombre?.toLowerCase());
+            return !tieneTarjeta;
+        });
+        
+        console.log(`🆕 Productos nuevos sin tarjeta: ${productosSinTarjeta.length}`);
+        
+        // Crear tarjetas para productos nuevos
+        productosSinTarjeta.forEach(producto => {
+            const tarjetaHTML = crearTarjetaProductoHTML(producto);
+            gridProductos.insertAdjacentHTML('beforeend', tarjetaHTML);
+            console.log(`✅ Tarjeta creada para: ${producto.nombre}`);
+        });
+        
+        // Reconfigurar event listeners para las nuevas tarjetas
+        if (productosSinTarjeta.length > 0) {
+            setTimeout(() => {
+                initEcommerce();
+                initFiltrosCategorias();
+            }, 100);
+        }
+    }
+    
+    // Función para crear el HTML de una tarjeta de producto
+    function crearTarjetaProductoHTML(producto) {
+        const imagenSrc = producto.imagen || 'images/Logo/logo-pincelart.jpg';
+        const productoId = producto.id || producto.nombre?.toLowerCase().replace(/\s+/g, '-');
+        const nombreNormalizado = producto.nombre?.toLowerCase().replace(/\s+/g, '-');
+        
+        return `
+            <div class="producto-card" data-categoria="${producto.categoria}" data-producto="${nombreNormalizado}" data-id="${producto.id}">
+                <div class="producto-img">
+                    <img src="${imagenSrc}" alt="${producto.nombre}" class="imagen-producto" onerror="this.src='images/Logo/logo-pincelart.jpg'">
+                    <div class="overlay">
+                        <button class="btn-ver" data-producto="${nombreNormalizado}">Ver Detalles</button>
+                    </div>
+                </div>
+                <h3>${producto.nombre}</h3>
+                <p>${producto.descripcion || 'Producto de PincelArt'}</p>
+                <div class="precio-categoria">
+                    <span class="precio">$${producto.precio?.toLocaleString() || '0'}</span>
+                    <span class="categoria">${producto.categoria || 'Productos'}</span>
+                </div>
+                <small style="display: block; margin-top: 0.5rem; color: ${producto.stock > 0 ? '#4caf50' : '#f44336'}; font-weight: 600;">
+                    Stock: ${producto.stock || 0}
+                </small>
+                <div class="producto-acciones">
+                    <button class="btn-carrito" data-producto="${nombreNormalizado}">🛒 Carrito</button>
+                    <button class="btn-compra" data-producto="${nombreNormalizado}">💳 Comprar</button>
+                    <button class="btn-favorito" data-producto="${nombreNormalizado}">❤️ Favorito</button>
+                </div>
+            </div>
+        `;
     }
     
 // Debug para verificar imagen de pulsera (mejorado)
