@@ -1671,8 +1671,9 @@ body {
 .detalles-acciones {
     display: flex;
     gap: 1rem;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
+    width: 100%;
 }
 
 .btn-detalle {

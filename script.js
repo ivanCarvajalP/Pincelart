@@ -426,6 +426,17 @@ function mostrarSeccion(seccion) {
 function initEcommerce() {
     console.log('Inicializando e-commerce...');
     
+    // Agregar data-producto a los botones "Ver Detalles" que no lo tienen
+    const btnVerDetalles = document.querySelectorAll('.btn-ver');
+    btnVerDetalles.forEach(btn => {
+        if (!btn.hasAttribute('data-producto')) {
+            const productoCard = btn.closest('.producto-card');
+            if (productoCard && productoCard.dataset.producto) {
+                btn.setAttribute('data-producto', productoCard.dataset.producto);
+            }
+        }
+    });
+    
     // Event listener para formulario de registro
     const formRegistro = document.getElementById('formRegistroCliente');
     if (formRegistro) {
@@ -475,9 +486,24 @@ function initEcommerce() {
         if (e.target.classList.contains('btn-ver')) {
             const productoCard = e.target.closest('.producto-card');
             if (productoCard) {
-                const productoId = productoCard.dataset.producto;
+                let productoId = productoCard.dataset.producto;
+                
+                // Si no tiene data-producto, intentar obtenerlo del título del producto
+                if (!productoId) {
+                    const h3 = productoCard.querySelector('h3');
+                    if (h3) {
+                        productoId = h3.textContent.trim().toLowerCase();
+                        console.log('📌 No hay data-producto, usando título:', productoId);
+                    }
+                }
+                
                 console.log('🔴 Botón Ver Detalles overlay clickeado, producto ID:', productoId);
-                mostrarDetallesProducto(productoId);
+                
+                if (productoId) {
+                    mostrarDetallesProducto(productoId);
+                } else {
+                    console.error('❌ No se pudo obtener el ID del producto');
+                }
             }
         }
         
@@ -763,18 +789,48 @@ function cerrarModal() {
 
 // Función para mostrar detalles del producto
 function mostrarDetallesProducto(productoId) {
-    console.log('Mostrando detalles para producto:', productoId);
+    console.log('🔍 Mostrando detalles para producto:', productoId);
+    console.log('📊 Tipo de productoId:', typeof productoId);
     
-    // Buscar el producto en todos los tipos
+    // Buscar el producto en localStorage primero
     let producto = null;
-    const tipos = ['guayabera', 'buso', 'conjunto', 'cuadro', 'chapa', 'poncho', 'gorra', 'sombrero', 'bolso', 'monedero', 'porta-celular', 'pocillo', 'arete', 'arete-collar', 'iman-nevera', 'monia', 'pulsera'];
+    const productosLocalStorage = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+    console.log('📦 Total productos en localStorage:', productosLocalStorage.length);
     
-    for (let tipo of tipos) {
-        const productos = obtenerProductosTipo(tipo);
-        const encontrado = productos.find(p => p.id === productoId);
-        if (encontrado) {
-            producto = encontrado;
-            break;
+    // Buscar por ID exacto
+    producto = productosLocalStorage.find(p => p.id === productoId);
+    console.log('🔎 Resultado búsqueda por ID exacto:', producto ? 'Encontrado' : 'No encontrado');
+    
+    // Si no se encuentra por ID, buscar por tipo/nombre o tomar el primer producto de ese tipo
+    if (!producto) {
+        const tipo = productoId.toLowerCase();
+        producto = productosLocalStorage.find(p => {
+            const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(tipo);
+            const nombreMatch = p.nombre && p.nombre.toLowerCase().includes(tipo);
+            return imagenMatch || nombreMatch;
+        });
+        
+        // Si aún no se encuentra, tomar el primer producto que coincida con el tipo
+        if (!producto) {
+            const primerProductoTipo = obtenerProductosTipo(tipo);
+            if (primerProductoTipo.length > 0) {
+                producto = primerProductoTipo[0];
+                console.log(`✅ Usando primer producto del tipo ${tipo}:`, producto.nombre);
+            }
+        }
+    }
+    
+    // Si aún no se encuentra, buscar en tipos hardcodeados
+    if (!producto) {
+        const tipos = ['guayabera', 'buso', 'conjunto', 'cuadro', 'chapa', 'poncho', 'gorra', 'sombrero', 'bolso', 'monedero', 'porta-celular', 'pocillo', 'arete', 'arete-collar', 'iman-nevera', 'monia', 'pulsera'];
+        
+        for (let tipo of tipos) {
+            const productos = obtenerProductosTipo(tipo);
+            const encontrado = productos.find(p => p.id === productoId || p.nombre.toLowerCase().includes(tipo));
+            if (encontrado) {
+                producto = encontrado;
+                break;
+            }
         }
     }
     
@@ -833,7 +889,7 @@ function mostrarDetallesProducto(productoId) {
                     <span class="categoria-badge">${producto.categoria}</span>
                 </div>
                 <div class="detalles-precio">
-                    <span class="precio-detalle">${producto.precio}</span>
+                    <span class="precio-detalle">$${typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio}</span>
                 </div>
                 <div class="detalles-descripcion">
                     <h3>Descripción</h3>
@@ -848,11 +904,6 @@ function mostrarDetallesProducto(productoId) {
                         <li>✅ Perfecto para ocasiones especiales</li>
                         <li>✅ Envío a toda Colombia</li>
                     </ul>
-                </div>
-                <div class="detalles-acciones">
-                    <button class="btn-carrito btn-detalle" data-producto="${producto.id}">🛒 Agregar al Carrito</button>
-                    <button class="btn-compra btn-detalle" data-producto="${producto.id}">💳 Comprar Ahora</button>
-                    <button class="btn-favorito btn-detalle" data-producto="${producto.id}">❤️ Agregar a Favoritos</button>
                 </div>
             </div>
         </div>
