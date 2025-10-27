@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - PincelArt</title>
+    <link rel="stylesheet" href="admin-panel-simple.css">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Header de Administración -->
+    <header class="admin-header">
+        <div class="admin-header-content">
+            <div class="admin-logo">
+                <img src="images/Logo/logo-pincelart.jpg" alt="Logo PincelArt" class="admin-logo-img">
+                <div class="admin-title">
+                    <h1>Panel de Administración</h1>
+                    <p>PincelArt Amazonía</p>
+                </div>
+            </div>
+            <div class="admin-user-info">
+                <div class="user-welcome">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="admin-user-name">Cargando...</span>
+                </div>
+                <div class="admin-actions">
+                    <button class="btn-back" onclick="volverAlInicio()">
+                        <i class="fas fa-home"></i> Volver al Inicio
+                    </button>
+                    <button class="btn-logout" onclick="cerrarSesionAdmin()">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="admin-main">
+        <div class="admin-container">
+            <!-- Sección de Gestión de Usuarios -->
+            <section class="admin-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="section-title">
+                        <h2>Gestión de Usuarios</h2>
+                        <p>Administra usuarios del sistema</p>
+                    </div>
+                </div>
+                <div class="section-actions">
+                    <button class="admin-btn primary" onclick="mostrarGestionUsuarios()">
+                        <i class="fas fa-users-cog"></i>
+                        <span>Gestionar Usuarios</span>
+                        <small>Ver, editar y eliminar usuarios</small>
+                    </button>
+                    <button class="admin-btn secondary" onclick="mostrarCrearUsuario()">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Crear Usuario</span>
+                        <small>Agregar nuevo usuario al sistema</small>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Sección de Gestión de Productos -->
+            <section class="admin-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="section-title">
+                        <h2>Gestión de Productos</h2>
+                        <p>Administra el catálogo de productos</p>
+                    </div>
+                </div>
+                <div class="section-actions">
+                    <button class="admin-btn primary" onclick="mostrarGestionProductos()">
+                        <i class="fas fa-boxes"></i>
+                        <span>Gestionar Productos</span>
+                        <small>Ver, editar y eliminar productos</small>
+                    </button>
+                    <button class="admin-btn secondary" onclick="mostrarAgregarProducto()">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                        <small>Crear nuevo producto</small>
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer de Administración -->
+    <footer class="admin-footer">
+        <div class="footer-content">
+            <div class="footer-info">
+                <p>&copy; 2024 PincelArt Amazonía. Todos los derechos reservados.</p>
+                <p>Panel de Administración v1.0</p>
+            </div>
+            <div class="footer-stats">
+                <div class="stat-item">
+                    <i class="fas fa-users"></i>
+                    <span id="total-users">0</span>
+                    <small>Usuarios</small>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-box"></i>
+                    <span id="total-products">0</span>
+                    <small>Productos</small>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span id="total-sales">0</span>
+                    <small>Ventas</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    
+    <!-- Firebase Service -->
+    <script src="firebase-service.js"></script>
+    
+    <!-- Script de migración -->
+    <script src="migrar-productos-completo.js"></script>
+    
+    <!-- Script simple -->
+    <script src="admin-panel-simple.js"></script>
+</body>
+</html>

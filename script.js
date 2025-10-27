@@ -2056,21 +2056,213 @@ function comprarAhora(productoId) {
         return;
     }
     
-    console.log('Usuario logueado, procediendo con compra');
+    console.log('Usuario logueado, agregando al carrito y abriendo modal de pago');
     
     const producto = obtenerDatosProducto(productoId);
     console.log('Producto para compra:', producto);
     
     if (producto) {
-        // Agregar al carrito y mostrar sección de carrito
+        // Agregar producto al carrito
         agregarAlCarrito(productoId);
-        mostrarSeccion('carrito');
-        mostrarNotificacion(`Redirigiendo al carrito para completar la compra de ${producto.nombre}`, 'info');
         
-        // Cerrar modal si está abierto
-        cerrarModal();
+        // Mostrar sección de carrito
+        mostrarSeccion('carrito');
+        mostrarCarrito();
+        
+        // Esperar un momento y luego abrir el modal de pago
+        setTimeout(() => {
+            // Crear objeto de compra con el producto recién agregado
+            const compra = {
+                productos: carrito,
+                total: convertirPrecioANumero(producto.precio)
+            };
+            
+            // Mostrar modal de pago PSE
+            mostrarModalPagoPSECompleto(compra);
+        }, 300);
     } else {
         mostrarNotificacion('Producto no encontrado', 'error');
+    }
+}
+
+// Función para simular pago con PSE
+function simularPagoPSE(producto) {
+    console.log('🔄 Iniciando simulación de pago PSE para:', producto.nombre);
+    
+    // Crear modal de pago
+    const modal = document.createElement('div');
+    modal.className = 'modal-pago-pse';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #1976d2, #42a5f5); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-credit-card" style="font-size: 2.5rem; color: white;"></i>
+                </div>
+                <h2 style="margin: 0; color: #333;">Procesar Pago PSE</h2>
+                <p style="margin: 0.5rem 0 0 0; color: #666;">Simulación de pago electrónico</p>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.1rem;">Resumen de Compra</h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #666;">Producto:</span>
+                    <strong style="color: #333;">${producto.nombre}</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #666;">Precio:</span>
+                    <strong style="color: #1976d2; font-size: 1.2rem;">$${typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio}</strong>
+                </div>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 600;">
+                    <span>Total a Pagar:</span>
+                    <span style="color: #1976d2;">$${typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio}</span>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="btn-pagar-pse" style="padding: 1rem 2rem; background: linear-gradient(135deg, #1976d2, #42a5f5); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 0.5rem;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Procesar Pago PSE
+                </button>
+                <button onclick="cerrarModalPago()" style="padding: 0.8rem 2rem; background: #e0e0e0; color: #333; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%;">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Simular procesamiento de pago
+    const btnPagar = modal.querySelector('#btn-pagar-pse');
+    btnPagar.onclick = function() {
+        btnPagar.disabled = true;
+        btnPagar.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Procesando...';
+        
+        // Simular delay de procesamiento (2 segundos)
+        setTimeout(() => {
+            mostrarConfirmacionPago(producto);
+            modal.remove();
+        }, 2000);
+    };
+}
+
+// Función para cerrar modal de pago
+function cerrarModalPago() {
+    const modal = document.querySelector('.modal-pago-pse');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Función para mostrar confirmación de pago
+function mostrarConfirmacionPago(producto) {
+    console.log('✅ Pago exitoso, mostrando confirmación');
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-confirmacion-pago';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const fechaCompra = new Date().toLocaleDateString('es-CO', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const numeroTransaccion = 'TXN-' + Date.now();
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 15px; max-width: 600px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 100px; height: 100px; background: #4caf50; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; animation: scaleIn 0.5s ease;">
+                    <i class="fas fa-check" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <h2 style="margin: 0; color: #4caf50;">¡Pago Exitoso!</h2>
+                <p style="margin: 0.5rem 0 0 0; color: #666;">Tu compra se ha realizado correctamente</p>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.1rem; border-bottom: 2px solid #ddd; padding-bottom: 0.5rem;">Recibo de Compra</h3>
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Número de Transacción:</strong>
+                    <span style="color: #333; font-size: 1.1rem;">${numeroTransaccion}</span>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Fecha y Hora:</strong>
+                    <span style="color: #333;">${fechaCompra}</span>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Cliente:</strong>
+                    <span style="color: #333;">${currentUser.name || currentUser.nombre}</span>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Email:</strong>
+                    <span style="color: #333;">${currentUser.email}</span>
+                </div>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 1rem 0;">
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Producto:</strong>
+                    <span style="color: #333;">${producto.nombre}</span>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Precio:</strong>
+                    <span style="color: #1976d2; font-size: 1.2rem; font-weight: 600;">$${typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio}</span>
+                </div>
+                <hr style="border: none; border-top: 2px solid #1976d2; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600;">
+                    <span>Total Pagado:</span>
+                    <span style="color: #4caf50;">$${typeof producto.precio === 'number' ? producto.precio.toLocaleString() : producto.precio}</span>
+                </div>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #1976d2;">
+                <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                    Recibirás un correo electrónico con los detalles de tu compra y las instrucciones de seguimiento.
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="cerrarModalConfirmacion()" style="padding: 1rem 2rem; background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%;">
+                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Volver al Catálogo
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Función para cerrar modal de confirmación
+function cerrarModalConfirmacion() {
+    const modal = document.querySelector('.modal-confirmacion-pago');
+    if (modal) {
+        modal.remove();
     }
 }
 
@@ -2284,13 +2476,260 @@ function limpiarCarrito() {
     mostrarNotificacion('Carrito limpiado', 'info');
 }
 
+// Función para mostrar modal completo de pago PSE con selección de banco
+function mostrarModalPagoPSECompleto(compra) {
+    console.log('🔄 Mostrando modal de pago PSE completo');
+    
+    // Crear modal
+    const modal = document.createElement('div');
+    modal.className = 'modal-pago-pse-completo';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 15px; max-width: 600px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #1976d2, #42a5f5); border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-university" style="font-size: 2.5rem; color: white;"></i>
+                </div>
+                <h2 style="margin: 0; color: #333;">Pago con PSE</h2>
+                <p style="margin: 0.5rem 0 0 0; color: #666;">Selecciona tu banco</p>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.1rem;">Resumen de tu compra</h3>
+                ${compra.productos.map((item, index) => {
+                    const producto = obtenerDatosProducto(item.id);
+                    return `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #ddd;">
+                            <span style="color: #666;">${producto ? producto.nombre : 'Producto'} x${item.cantidad}</span>
+                            <strong style="color: #333;">$${producto ? (convertirPrecioANumero(producto.precio) * item.cantidad).toLocaleString() : '0'}</strong>
+                        </div>
+                    `;
+                }).join('')}
+                <hr style="border: none; border-top: 2px solid #1976d2; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600;">
+                    <span>Total a Pagar:</span>
+                    <span style="color: #1976d2;">$${compra.total.toLocaleString()}</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Selecciona tu banco *</label>
+                <select id="select-banco" required style="width: 100%; padding: 1rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                    <option value="">Selecciona un método de pago</option>
+                    <optgroup label="Bancos">
+                        <option value="bancolombia">Bancolombia</option>
+                        <option value="davivienda">Davivienda</option>
+                        <option value="banco-bogota">Banco de Bogotá</option>
+                        <option value="banco-occidente">Banco de Occidente</option>
+                        <option value="banco-popular">Banco Popular</option>
+                        <option value="banco-caja-social">Banco Caja Social</option>
+                        <option value="bbva">BBVA Colombia</option>
+                        <option value="banco-agrario">Banco Agrario</option>
+                        <option value="citibank">Citibank</option>
+                        <option value="scotiabank">Scotiabank Colpatria</option>
+                    </optgroup>
+                    <optgroup label="Billeteras Digitales">
+                        <option value="nequi">Nequi</option>
+                        <option value="daviplata">DaviPlata</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div style="text-align: center;">
+                <button id="btn-procesar-pse" style="padding: 1rem 2rem; background: linear-gradient(135deg, #1976d2, #42a5f5); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 0.5rem;">
+                    <i class="fas fa-spinner" style="margin-right: 0.5rem;"></i> Procesar Pago PSE
+                </button>
+                <button onclick="cerrarModalPagoCompleto()" style="padding: 0.8rem 2rem; background: #e0e0e0; color: #333; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; width: 100%;">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Event listener para procesar pago
+    const btnProcesar = modal.querySelector('#btn-procesar-pse');
+    btnProcesar.onclick = function() {
+        const banco = modal.querySelector('#select-banco').value;
+        
+        if (!banco) {
+            mostrarNotificacion('Por favor selecciona un banco', 'error');
+            return;
+        }
+        
+        // Procesar pago con el banco seleccionado
+        procesarPagoPSEConBanco(compra, banco, modal);
+    };
+}
+
+function cerrarModalPagoCompleto() {
+    const modal = document.querySelector('.modal-pago-pse-completo');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function procesarPagoPSEConBanco(compra, banco, modalAnterior) {
+    const btnProcesar = modalAnterior.querySelector('#btn-procesar-pse');
+    btnProcesar.disabled = true;
+    btnProcesar.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i> Procesando pago...';
+    
+    // Simular procesamiento con el banco (3 segundos)
+    setTimeout(() => {
+        modalAnterior.remove();
+        mostrarConfirmacionPagoCompleta(compra, banco);
+    }, 3000);
+}
+
+function mostrarConfirmacionPagoCompleta(compra, banco) {
+    console.log('✅ Pago exitoso con banco:', banco);
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-confirmacion-pago-completo';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    
+    const fechaCompra = new Date().toLocaleDateString('es-CO', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    
+    const numeroTransaccion = 'TXN-' + Date.now();
+    
+    modal.innerHTML = `
+        <div style="background: white; padding: 2rem; border-radius: 15px; max-width: 600px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="width: 100px; height: 100px; background: #4caf50; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <h2 style="margin: 0; color: #4caf50;">¡Pago Exitoso!</h2>
+                <p style="margin: 0.5rem 0 0 0; color: #666;">Tu compra se ha realizado correctamente</p>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; color: #333; font-size: 1.1rem; border-bottom: 2px solid #ddd; padding-bottom: 0.5rem;">Recibo de Compra</h3>
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Número de Transacción:</strong>
+                    <span style="color: #333; font-size: 1.1rem;">${numeroTransaccion}</span>
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Fecha y Hora:</strong>
+                    <span style="color: #333;">${fechaCompra}</span>
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Cliente:</strong>
+                    <span style="color: #333;">${currentUser.name || currentUser.nombre}</span>
+                </div>
+                <div style="margin-bottom: 0.8rem;">
+                    <strong style="color: #666; display: block; margin-bottom: 0.3rem;">Banco:</strong>
+                    <span style="color: #333;">${banco.toUpperCase().replace(/-/g, ' ')}</span>
+                </div>
+                <hr style="border: none; border-top: 1px solid #ddd; margin: 1rem 0;">
+                <strong style="color: #666; display: block; margin-bottom: 0.5rem;">Productos:</strong>
+                ${compra.productos.map((item, index) => {
+                    const producto = obtenerDatosProducto(item.id);
+                    return `
+                        <div style="margin-bottom: 0.5rem; padding-left: 1rem;">
+                            ${producto ? producto.nombre : 'Producto'} - Cantidad: ${item.cantidad} - $${producto ? (convertirPrecioANumero(producto.precio) * item.cantidad).toLocaleString() : '0'}
+                        </div>
+                    `;
+                }).join('')}
+                <hr style="border: none; border-top: 2px solid #1976d2; margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: 600;">
+                    <span>Total Pagado:</span>
+                    <span style="color: #4caf50;">$${compra.total.toLocaleString()}</span>
+                </div>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #1976d2;">
+                <p style="margin: 0; color: #1976d2; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem;"></i>
+                    Recibirás un correo electrónico con los detalles de tu compra.
+                </p>
+            </div>
+            
+            <div style="text-align: center;">
+                <button onclick="finalizarCompra()" style="padding: 1rem 2rem; background: linear-gradient(135deg, #4caf50, #66bb6a); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; width: 100%;">
+                    <i class="fas fa-arrow-left" style="margin-right: 0.5rem;"></i> Volver al Catálogo
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+function finalizarCompra() {
+    // Limpiar carrito después de compra exitosa
+    carrito = [];
+    actualizarCarrito();
+    saveUserData();
+    
+    // Cerrar modal
+    const modal = document.querySelector('.modal-confirmacion-pago-completo');
+    if (modal) {
+        modal.remove();
+    }
+    
+    // Mostrar notificación
+    mostrarNotificacion('¡Compra realizada exitosamente! Gracias por tu compra', 'success');
+    
+    // Volver a sección de productos
+    setTimeout(() => {
+        mostrarSeccion('productos');
+    }, 1000);
+}
+
 function procederCompra() {
     if (carrito.length === 0) {
         mostrarNotificacion('Tu carrito está vacío', 'error');
         return;
     }
     
-    mostrarNotificacion('Función de compra en desarrollo', 'info');
+    // Calcular total del carrito
+    const total = carrito.reduce((sum, item) => {
+        const producto = obtenerDatosProducto(item.id);
+        if (producto) {
+            const precio = convertirPrecioANumero(producto.precio);
+            return sum + (precio * item.cantidad);
+        }
+        return sum;
+    }, 0);
+    
+    // Crear objeto de compra con todos los productos del carrito
+    const compra = {
+        productos: carrito,
+        total: total
+    };
+    
+    // Mostrar modal de pago PSE con selección de banco
+    mostrarModalPagoPSECompleto(compra);
 }
 
 // Función para inicializar el menú hamburguesa
