@@ -1069,77 +1069,19 @@ function mostrarDetallesProducto(productoId) {
     console.log('Modal de detalles mostrado para:', producto.nombre);
 }
 
-// Función para agregar event listeners a los botones del modal de detalles
+// FUNCIONES DESHABILITADAS - Los listeners se manejan globalmente en initEcommerce()
+// Ya no se usan para evitar duplicados
 function agregarEventListenersDetalles() {
-    const modal = document.getElementById('modal-detalles');
-    if (!modal) return;
-    
-    modal.addEventListener('click', function(e) {
-        if (e.target.classList.contains('btn-carrito')) {
-            const productoId = e.target.dataset.producto;
-            console.log('Botón carrito detalles clickeado, producto ID:', productoId);
-            agregarAlCarrito(productoId);
-        }
-        
-        if (e.target.classList.contains('btn-favorito')) {
-            const productoId = e.target.dataset.producto;
-            console.log('Botón favorito detalles clickeado, producto ID:', productoId);
-            toggleFavorito(productoId);
-        }
-        
-        if (e.target.classList.contains('btn-compra')) {
-            const productoId = e.target.dataset.producto;
-            console.log('Botón compra detalles clickeado, producto ID:', productoId);
-            comprarAhora(productoId);
-        }
-    });
+    // DESHABILITADO - usar listener global en initEcommerce()
 }
 
-// Función para agregar event listeners a los botones del modal
 function agregarEventListenersModal() {
-    const modal = document.getElementById('modal-productos');
-    if (!modal) return;
-    
-    // Event listener para botones dentro del modal
-    modal.addEventListener('click', function(e) {
-        console.log('Click en modal:', e.target);
-        
-        if (e.target.classList.contains('btn-carrito')) {
-            const productoCard = e.target.closest('.producto-card-modal');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón carrito modal clickeado, producto ID:', productoId);
-                agregarAlCarrito(productoId);
-            }
-        }
-        
-        if (e.target.classList.contains('btn-favorito')) {
-            const productoCard = e.target.closest('.producto-card-modal');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón favorito modal clickeado, producto ID:', productoId);
-                toggleFavorito(productoId);
-            }
-        }
-        
-        if (e.target.classList.contains('btn-compra')) {
-            const productoCard = e.target.closest('.producto-card-modal');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón compra modal clickeado, producto ID:', productoId);
-                comprarAhora(productoId);
-            }
-        }
-        
-        if (e.target.classList.contains('btn-ver')) {
-            const productoCard = e.target.closest('.producto-card-modal');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('🔴 Botón Ver Detalles modal clickeado, producto ID:', productoId);
-                mostrarDetallesProducto(productoId);
-            }
-        }
-    });
+    // DESHABILITADO - usar listener global en initEcommerce()
+}
+
+// Función auxiliar para manejar clicks del modal
+function manejarClickModal() {
+    // Los clicks se manejan en initEcommerce() con listener global
 }
 
 function obtenerProductosTipo(tipo) {
