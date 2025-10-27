@@ -1,0 +1,22 @@
+REGLA STORAGE (Opcional - solo si subes imágenes a Firebase)
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /productos/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════
+APLICAR:
+Firebase Console → Storage → Reglas → Pegar → Publicar
+
+Si NO usas Storage, no es necesario configurarlo.
+

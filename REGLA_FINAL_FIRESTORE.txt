@@ -1,0 +1,37 @@
+═══════════════════════════════════════════════════════
+REGLA FINAL FIRESTORE (Permite crear usuarios)
+═══════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /productos/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /usuarios/{userId} {
+      allow create: if true;
+      allow read: if false;
+      allow update, delete: if false;
+    }
+    
+    match /ventas/{ventaId} {
+      allow read, write: if false;
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════
+RESUMEN DE SEGURIDAD:
+✅ Productos: Solo lectura (público puede ver)
+❌ Productos: Escritura bloqueada
+✅ Usuarios: Pueden crearse
+❌ Usuarios: No se pueden leer de forma pública
+❌ Usuarios: No se pueden modificar/eliminar
+❌ Ventas: Completamente bloqueadas
+

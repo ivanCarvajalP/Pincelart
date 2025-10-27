@@ -1,0 +1,40 @@
+# Credenciales de Firebase - NO SUBIR A GITHUB
+firebase-config.js
+
+# Archivos de configuración sensibles
+firebase-credentials.json
+firebase-service.js
+
+# Variables de entorno
+.env
+.env.local
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporal
+*.tmp
+*.temp
+
+# Objetos compilados
+obj/
+bin/
+
+# Archivos de respaldo
+*.bak
+*~
+
+# Cache
+.cache/
+

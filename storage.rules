@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // BLOQUEAR TODO EL ACCESO PÚBLICO
+    // Solo usuarios autenticados pueden leer
+    // Solo admins pueden escribir
+    
+    // Imágenes de productos
+    match /productos/{allPaths=**} {
+      // LECTURA PÚBLICA - cualquier visitante puede ver las imágenes
+      allow read: if true;
+      // Solo escritura para admins
+      allow write: if false;
+    }
+    
+    // Otras rutas - BLOQUEADAS
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

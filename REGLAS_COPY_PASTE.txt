@@ -1,0 +1,95 @@
+═══════════════════════════════════════════════════════
+REGLAS DE FIRESTORE (Base de datos - productos)
+═══════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /productos/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /usuarios/{userId} {
+      allow read, write: if false;
+    }
+    
+    match /ventas/{ventaId} {
+      allow read, write: if false;
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════
+REGLAS DE STORAGE (Imágenes de productos)
+═══════════════════════════════════════════════════════
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /productos/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════
+INSTRUCCIONES PASO A PASO
+═══════════════════════════════════════════════════════
+
+PASO 1: Abrir Firebase
+───────────────────────────────────────────────────────
+1. Abre tu navegador (Chrome, Edge, etc.)
+2. Ve a: https://console.firebase.google.com
+3. Inicia sesión con tu cuenta de Google
+4. Espera que cargue tu dashboard
+
+PASO 2: Seleccionar tu proyecto
+───────────────────────────────────────────────────────
+1. Busca en la lista y haz clic en "pincelart-f7cdd"
+2. Espera que cargue el proyecto
+
+PASO 3: Aplicar reglas de Firestore
+───────────────────────────────────────────────────────
+1. En el menú lateral izquierdo, busca "Firestore Database"
+2. Haz clic en "Firestore Database"
+3. En la parte superior verás varias pestañas: "Datos", "Reglas", "Índices", "Uso"
+4. Haz clic en la pestaña "Reglas"
+5. Verás un editor de código (parece un bloc de notas)
+6. Selecciona TODO el código que hay (Ctrl+A)
+7. BÓRRALO y pega la primera regla de arriba (REGLAS DE FIRESTORE)
+8. Revisa que se vea bien
+9. Busca el botón "Publicar" (azul, arriba a la derecha)
+10. Haz clic en "Publicar"
+11. Espera 5 segundos - verás un mensaje de confirmación
+
+PASO 4: Aplicar reglas de Storage
+───────────────────────────────────────────────────────
+1. En el menú lateral izquierdo, busca "Storage"
+2. Haz clic en "Storage"
+3. En la parte superior verás pestañas: "Archivos", "Reglas", "Uso"
+4. Haz clic en la pestaña "Reglas"
+5. Verás otro editor de código
+6. Selecciona TODO el código que hay (Ctrl+A)
+7. BÓRRALO y pega la segunda regla de arriba (REGLAS DE STORAGE)
+8. Revisa que se vea bien
+9. Haz clic en "Publicar" (botón azul)
+10. Espera 5 segundos
+
+PASO 5: Listo!
+───────────────────────────────────────────────────────
+✅ Tu base de datos está protegida
+✅ Tu sitio web sigue funcionando
+✅ Nadie puede modificar tus productos
+
+═══════════════════════════════════════════════════════
+
