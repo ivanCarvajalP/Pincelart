@@ -1007,11 +1007,32 @@ function obtenerProductosTipo(tipo) {
         
         console.log(`👥 Filtrando a ${productosActivos.length} productos ACTIVOS de ${productosGestion.length} totales`);
         
-        return productosActivos.filter(p => {
-            const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(tipo.toLowerCase());
-            const nombreMatch = p.nombre && p.nombre.toLowerCase().includes(tipo.toLowerCase());
-            return imagenMatch || nombreMatch;
+        // Normalizar el tipo de búsqueda (quitar guiones, convertir a minúsculas)
+        const tipoNormalizado = tipo.toLowerCase().replace(/-/g, '');
+        console.log(`🔍 Buscando tipo normalizado: "${tipoNormalizado}"`);
+        
+        const resultados = productosActivos.filter(p => {
+            // Normalizar imagen sin guiones ni mayúsculas
+            const imagenNormalizada = p.imagen ? p.imagen.toLowerCase().replace(/-/g, '') : '';
+            const imagenMatch = imagenNormalizada.includes(tipoNormalizado);
+            
+            // Normalizar nombre
+            const nombreNormalizado = p.nombre ? p.nombre.toLowerCase().replace(/-/g, '') : '';
+            const nombreMatch = nombreNormalizado.includes(tipoNormalizado);
+            
+            // También buscar en la categoría si existe
+            const categoriaNormalizada = p.categoria ? p.categoria.toLowerCase().replace(/-/g, '') : '';
+            const categoriaMatch = categoriaNormalizada.includes(tipoNormalizado);
+            
+            if (imagenMatch || nombreMatch || categoriaMatch) {
+                console.log(`✅ Producto encontrado: ${p.nombre} (imagen: ${imagenMatch}, nombre: ${nombreMatch}, categoria: ${categoriaMatch})`);
+            }
+            
+            return imagenMatch || nombreMatch || categoriaMatch;
         });
+        
+        console.log(`📊 Total productos encontrados: ${resultados.length}`);
+        return resultados;
     }
     
     // Si no hay productos en gestión, usar datos estáticos como fallback
