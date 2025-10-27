@@ -75,10 +75,28 @@ function cargarInformacionUsuario() {
     }
 }
 
-function cargarEstadisticas() {
+async function cargarEstadisticas() {
     try {
+        // Cargar usuarios desde localStorage
         const users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
-        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        
+        // Cargar productos desde Firebase si está disponible
+        let productos = [];
+        if (window.firebaseService && window.firebaseService.initialized) {
+            try {
+                const result = await window.firebaseService.getAllProducts();
+                if (result.success && result.data) {
+                    productos = result.data;
+                    console.log(`📊 Productos cargados desde Firebase: ${productos.length}`);
+                }
+            } catch (error) {
+                console.warn('⚠️ Error cargando productos desde Firebase:', error);
+                // Fallback a localStorage
+                productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+            }
+        } else {
+            productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        }
         
         // Actualizar contadores
         const totalUsersElement = document.getElementById('total-users');
@@ -97,7 +115,7 @@ function cargarEstadisticas() {
             totalSalesElement.textContent = '0';
         }
         
-        console.log('✅ Estadísticas cargadas');
+        console.log(`✅ Estadísticas cargadas: ${users.length} usuarios, ${productos.length} productos`);
     } catch (error) {
         console.error('❌ Error cargando estadísticas:', error);
     }
