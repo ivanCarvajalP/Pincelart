@@ -17,12 +17,12 @@ class FirebaseService {
 
             // Configuración de Firebase
             const firebaseConfig = {
-                apiKey: "AIzaSyDVW9JZsw3ABOiRdzm2mNYi3Kx4y7tbjU4",
-                authDomain: "pincelart-a5a6f.firebaseapp.com",
-                projectId: "pincelart-a5a6f",
-                storageBucket: "pincelart-a5a6f.firebasestorage.app",
-                messagingSenderId: "881733448075",
-                appId: "1:881733448075:web:b8cc09d8029ca0ec73bf8e"
+                apiKey: "AIzaSyBnv7RrdRukKF5C1RB0ob02K8fRoLR7I_Q",
+                authDomain: "pincelart-f7cdd.firebaseapp.com",
+                projectId: "pincelart-f7cdd",
+                storageBucket: "pincelart-f7cdd.firebasestorage.app",
+                messagingSenderId: "933474912683",
+                appId: "1:933474912683:web:89dd1cca68f463258b2aee"
             };
 
             // Inicializar Firebase

@@ -1670,13 +1670,35 @@ async function cargarProductos() {
         let productosTemp = [];
         
         // ==========================================
-        // CARGA DESDE LOCALSTORAGE (FUNCIONA AHORA)
-        // TODO: Cuando Firebase esté disponible, cambiar a:
-        // if (window.firebaseService && window.firebaseService.initialized) { ... }
+        // CARGA DESDE FIREBASE (PRIORIDAD) O LOCALSTORAGE
         // ==========================================
-        console.log('💾 Cargando desde localStorage...');
-        productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        console.log(`📊 Productos en localStorage: ${productosTemp.length}`);
+        
+        // Intentar cargar desde Firebase primero
+        if (window.firebaseService && window.firebaseService.initialized) {
+            console.log('🔥 Intentando cargar desde Firebase...');
+            try {
+                const result = await window.firebaseService.getAllProducts();
+                if (result.success && result.data && result.data.length > 0) {
+                    productosTemp = result.data;
+                    console.log(`🔥 ${productosTemp.length} productos cargados desde Firebase`);
+                    
+                    // Actualizar localStorage como backup
+                    localStorage.setItem('pincelart_productos', JSON.stringify(productosTemp));
+                    console.log('✅ localStorage actualizado con productos de Firebase');
+                } else {
+                    console.log('⚠️ Firebase vacío, cargando desde localStorage...');
+                    productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+                }
+            } catch (error) {
+                console.error('❌ Error cargando desde Firebase:', error);
+                console.log('💾 Fallback: Cargando desde localStorage...');
+                productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+            }
+        } else {
+            console.log('💾 Cargando desde localStorage...');
+            productosTemp = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+            console.log(`📊 Productos en localStorage: ${productosTemp.length}`);
+        }
         
         // SI hay muy pocos productos (menos de 100), limpiar y cargar desde migración
         if (productosTemp.length > 0 && productosTemp.length < 100) {
