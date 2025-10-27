@@ -37,9 +37,9 @@ class LoginSystem {
         });
 
         // Envío de formularios
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.handleLogin();
+            await this.handleLogin();
         });
 
         document.getElementById('registerForm').addEventListener('submit', (e) => {
@@ -47,9 +47,9 @@ class LoginSystem {
             this.handleRegister();
         });
 
-        document.getElementById('forgotForm').addEventListener('submit', (e) => {
+        document.getElementById('forgotForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.handleForgotPassword();
+            await this.handleForgotPassword();
         });
     }
 
@@ -95,7 +95,7 @@ class LoginSystem {
         return password.length >= 6;
     }
 
-    handleLogin() {
+    async handleLogin() {
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value;
 
@@ -108,6 +108,11 @@ class LoginSystem {
             this.showMessage('Por favor, ingresa un correo electrónico válido.', 'error');
             return;
         }
+
+        // RECARGAR USUARIOS desde Firebase antes de buscar (para tener datos actualizados)
+        console.log('🔄 Recargando usuarios desde Firebase antes de login...');
+        await this.loadUsersFromFirebase();
+        console.log(`📋 Usuarios disponibles para login: ${this.users.length}`);
 
         const user = this.users.find(u => u.email === email && u.password === password);
         
@@ -229,13 +234,16 @@ class LoginSystem {
         console.warn('⚠️ No se pudieron cargar usuarios de Firebase, usando localStorage');
     }
 
-    handleForgotPassword() {
+    async handleForgotPassword() {
         const email = document.getElementById('forgotEmail').value.trim();
 
         if (!this.validateEmail(email)) {
             this.showMessage('Por favor, ingresa un correo electrónico válido.', 'error');
             return;
         }
+
+        // Recargar usuarios desde Firebase antes de buscar
+        await this.loadUsersFromFirebase();
 
         const user = this.users.find(u => u.email === email);
         
