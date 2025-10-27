@@ -1359,8 +1359,8 @@ function updateUserInterface() {
         // Mostrar nombre del usuario en algún lugar de la interfaz
         const userNameElement = document.querySelector('.user-name');
         if (userNameElement) {
-            const fullName = currentUser.name;
-            const abbreviatedName = abbreviateName(fullName);
+            const fullName = currentUser.nombre || currentUser.name || '';
+            const abbreviatedName = fullName ? abbreviateName(fullName) : 'Usuario';
             userNameElement.textContent = `Hola, ${abbreviatedName}`;
             console.log('Nombre de usuario actualizado:', fullName, '->', abbreviatedName);
         }

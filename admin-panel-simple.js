@@ -1924,22 +1924,24 @@ function mostrarCrearUsuario() {
     });
 }
 
-function crearUsuario(form) {
+async function crearUsuario(form) {
     try {
         const formData = new FormData(form);
         
         const nuevoUsuario = {
             id: `user_${Date.now()}`,
-            name: formData.get('nombre').trim(),
+            nombre: formData.get('nombre').trim(),
+            name: formData.get('nombre').trim(), // Compatibilidad
             email: formData.get('email').trim(),
-            phone: formData.get('telefono').trim(),
+            telefono: formData.get('telefono').trim(),
+            phone: formData.get('telefono').trim(), // Compatibilidad
             password: formData.get('password'),
             rol: formData.get('rol'),
             fechaCreacion: new Date().toISOString()
         };
         
         // Validar que todos los campos estén llenos
-        if (!nuevoUsuario.name || !nuevoUsuario.email || !nuevoUsuario.phone || !nuevoUsuario.password) {
+        if (!nuevoUsuario.nombre || !nuevoUsuario.email || !nuevoUsuario.telefono || !nuevoUsuario.password) {
             mostrarMensaje('Error', 'Todos los campos son obligatorios.', 'error');
             return;
         }
@@ -1954,7 +1956,7 @@ function crearUsuario(form) {
         }
         
         // Verificar si el teléfono ya existe
-        if (usuarios.some(u => u.phone === nuevoUsuario.phone)) {
+        if (usuarios.some(u => u.phone === nuevoUsuario.telefono || u.telefono === nuevoUsuario.telefono)) {
             mostrarMensaje('Error', 'Ya existe un usuario con este número de teléfono.', 'error');
             return;
         }
@@ -1968,7 +1970,7 @@ function crearUsuario(form) {
         
         // Validar formato de teléfono (solo números, mínimo 7 dígitos)
         const phoneRegex = /^\d{7,15}$/;
-        if (!phoneRegex.test(nuevoUsuario.phone)) {
+        if (!phoneRegex.test(nuevoUsuario.telefono)) {
             mostrarMensaje('Error', 'El teléfono debe contener solo números y tener entre 7 y 15 dígitos.', 'error');
             return;
         }
@@ -1979,7 +1981,12 @@ function crearUsuario(form) {
         
         // Guardar en Firebase si está disponible
         if (window.firebaseService && window.firebaseService.initialized) {
-            window.firebaseService.saveUser(nuevoUsuario);
+            try {
+                await window.firebaseService.saveUser(nuevoUsuario);
+                console.log('✅ Usuario guardado en Firebase:', nuevoUsuario.email);
+            } catch (error) {
+                console.error('❌ Error guardando usuario en Firebase:', error);
+            }
         }
         
         mostrarMensaje('¡Éxito!', 'Usuario creado exitosamente.', 'success');

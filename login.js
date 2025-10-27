@@ -183,6 +183,16 @@ class LoginSystem {
 
         this.users.push(newUser);
         localStorage.setItem('pincelart_users', JSON.stringify(this.users));
+        
+        // Guardar en Firebase si está disponible
+        if (window.firebaseService && window.firebaseService.initialized) {
+            try {
+                window.firebaseService.saveUser(newUser);
+                console.log('✅ Usuario cliente guardado en Firebase:', newUser.email);
+            } catch (error) {
+                console.error('❌ Error guardando usuario en Firebase:', error);
+            }
+        }
 
         this.showMessage('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
         
