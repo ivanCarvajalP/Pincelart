@@ -42,9 +42,9 @@ class LoginSystem {
             await this.handleLogin();
         });
 
-        document.getElementById('registerForm').addEventListener('submit', (e) => {
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.handleRegister();
+            await this.handleRegister();
         });
 
         document.getElementById('forgotForm').addEventListener('submit', async (e) => {
@@ -135,7 +135,7 @@ class LoginSystem {
         }
     }
 
-    handleRegister() {
+    async handleRegister() {
         const name = document.getElementById('registerName').value.trim();
         const email = document.getElementById('registerEmail').value.trim();
         const phone = document.getElementById('registerPhone').value.trim();
@@ -169,6 +169,10 @@ class LoginSystem {
             return;
         }
 
+        // RECARGAR usuarios desde Firebase antes de verificar si existe
+        console.log('🔄 Recargando usuarios desde Firebase antes de registro...');
+        await this.loadUsersFromFirebase();
+
         // Verificar si el usuario ya existe
         if (this.users.find(u => u.email === email)) {
             this.showMessage('Ya existe una cuenta con este correo electrónico.', 'error');
@@ -191,14 +195,16 @@ class LoginSystem {
         this.users.push(newUser);
         localStorage.setItem('pincelart_users', JSON.stringify(this.users));
         
-        // Guardar en Firebase si está disponible
+        // Guardar en Firebase si está disponible (ESPERANDO a que termine)
         if (window.firebaseService && window.firebaseService.initialized) {
             try {
-                window.firebaseService.saveUser(newUser);
+                await window.firebaseService.saveUser(newUser);
                 console.log('✅ Usuario cliente guardado en Firebase:', newUser.email);
             } catch (error) {
                 console.error('❌ Error guardando usuario en Firebase:', error);
             }
+        } else {
+            console.warn('⚠️ Firebase no disponible, usuario guardado solo en localStorage');
         }
 
         this.showMessage('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', 'success');
