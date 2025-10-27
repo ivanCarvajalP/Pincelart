@@ -203,19 +203,29 @@ class LoginSystem {
     }
 
     async loadUsersFromFirebase() {
-        // Cargar usuarios de Firebase si está disponible
-        if (window.firebaseService && window.firebaseService.initialized) {
-            try {
-                const result = await window.firebaseService.getAllUsers();
-                if (result.success) {
-                    this.users = result.data;
-                    localStorage.setItem('pincelart_users', JSON.stringify(this.users));
-                    console.log('✅ Usuarios cargados desde Firebase:', this.users.length);
+        // Esperar a que Firebase esté disponible (hasta 5 segundos)
+        let attempts = 0;
+        while (attempts < 10) {
+            if (window.firebaseService && window.firebaseService.initialized) {
+                try {
+                    const result = await window.firebaseService.getAllUsers();
+                    if (result.success) {
+                        this.users = result.data;
+                        localStorage.setItem('pincelart_users', JSON.stringify(this.users));
+                        console.log('✅ Usuarios cargados desde Firebase:', this.users.length);
+                        return; // Éxito, salir del bucle
+                    }
+                } catch (error) {
+                    console.error('❌ Error cargando usuarios de Firebase:', error);
                 }
-            } catch (error) {
-                console.error('❌ Error cargando usuarios de Firebase:', error);
+            } else {
+                // Esperar 500ms antes de intentar de nuevo
+                await new Promise(resolve => setTimeout(resolve, 500));
+                attempts++;
+                console.log('⏳ Esperando que Firebase se inicialice...', attempts);
             }
         }
+        console.warn('⚠️ No se pudieron cargar usuarios de Firebase, usando localStorage');
     }
 
     handleForgotPassword() {
