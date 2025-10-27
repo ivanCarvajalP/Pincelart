@@ -4,6 +4,7 @@ class LoginSystem {
         this.users = JSON.parse(localStorage.getItem('pincelart_users')) || [];
         this.currentUser = JSON.parse(localStorage.getItem('pincelart_current_user')) || null;
         this.init();
+        this.loadUsersFromFirebase();
     }
 
     init() {
@@ -199,6 +200,22 @@ class LoginSystem {
         setTimeout(() => {
             this.showForm('login');
         }, 2000);
+    }
+
+    async loadUsersFromFirebase() {
+        // Cargar usuarios de Firebase si está disponible
+        if (window.firebaseService && window.firebaseService.initialized) {
+            try {
+                const result = await window.firebaseService.getAllUsers();
+                if (result.success) {
+                    this.users = result.data;
+                    localStorage.setItem('pincelart_users', JSON.stringify(this.users));
+                    console.log('✅ Usuarios cargados desde Firebase:', this.users.length);
+                }
+            } catch (error) {
+                console.error('❌ Error cargando usuarios de Firebase:', error);
+            }
+        }
     }
 
     handleForgotPassword() {
