@@ -140,14 +140,24 @@ document.addEventListener('DOMContentLoaded', async function() {
             
             if (!dataProducto || !dataCategoria) return;
             
-            // Buscar producto en localStorage que coincida
+            // Buscar producto en localStorage que coincida (con normalización)
+            const dataProductoNormalizado = dataProducto.toLowerCase().replace(/-/g, '');
             const producto = productosGestion.find(p => {
-                const imagenMatch = p.imagen && p.imagen.toLowerCase().includes(dataProducto.toLowerCase());
+                // Normalizar imagen sin guiones
+                const imagenNormalizada = p.imagen ? p.imagen.toLowerCase().replace(/-/g, '') : '';
+                const imagenMatch = imagenNormalizada.includes(dataProductoNormalizado);
+                
+                // También buscar en nombre
+                const nombreNormalizado = p.nombre ? p.nombre.toLowerCase().replace(/-/g, '') : '';
+                const nombreMatch = nombreNormalizado.includes(dataProductoNormalizado);
+                
                 const categoriaMatch = p.categoria === dataCategoria;
-                return imagenMatch && categoriaMatch;
+                
+                return (imagenMatch || nombreMatch) && categoriaMatch;
             });
             
             if (producto) {
+                console.log(`🔍 Encontrado producto: ${dataProducto} → ${producto.nombre}`);
                 // Actualizar precio
                 const precioEl = tarjeta.querySelector('.precio');
                 if (precioEl) {
@@ -1024,8 +1034,13 @@ function obtenerProductosTipo(tipo) {
             const categoriaNormalizada = p.categoria ? p.categoria.toLowerCase().replace(/-/g, '') : '';
             const categoriaMatch = categoriaNormalizada.includes(tipoNormalizado);
             
+            // Debug: Mostrar primeros 5 productos como muestra
+            if (productosActivos.indexOf(p) < 5) {
+                console.log(`🔍 Producto ${productosActivos.indexOf(p) + 1}: "${p.imagen}" → normalizada: "${imagenNormalizada.substring(0, 50)}..."`);
+            }
+            
             if (imagenMatch || nombreMatch || categoriaMatch) {
-                console.log(`✅ Producto encontrado: ${p.nombre} (imagen: ${imagenMatch}, nombre: ${nombreMatch}, categoria: ${categoriaMatch})`);
+                console.log(`✅ Producto encontrado: ${p.nombre} - Imagen: ${p.imagen}`);
             }
             
             return imagenMatch || nombreMatch || categoriaMatch;
