@@ -77,3 +77,4 @@ Copy-Item "puntos-control/migrar-productos-completo-stock1.js" "migrar-productos
 **Última actualización:** Todos los productos con stock = 1
 
 
+

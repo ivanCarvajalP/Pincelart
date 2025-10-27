@@ -1551,12 +1551,16 @@ function mostrarCrearProducto() {
         currentUser.rol === 'Administrador' ||
         currentUser.rol === 'ADMINISTRADOR' ||
         currentUser.rol === 'super_usuario' ||
+        currentUser.rol === 'dueño' ||
+        currentUser.rol === 'Dueño' ||
+        currentUser.rol === 'vendedor' ||
+        currentUser.rol === 'Vendedor' ||
         currentUser.id === 'super_user_001' ||
         currentUser.id === 'admin_001'
     );
     
     if (!rolValido) {
-        mostrarMensaje('Error', 'Solo el administrador puede agregar productos.', 'error');
+        mostrarMensaje('Error', 'No tienes permisos para agregar productos.', 'error');
         return;
     }
     
@@ -1718,6 +1722,13 @@ async function crearProducto(form) {
         localStorage.setItem('pincelart_productos', JSON.stringify(productos));
         
         mostrarMensaje('¡Éxito!', 'Producto creado exitosamente.', 'success');
+        
+        // Disparar evento para actualizar catálogo en tiempo real
+        const productosActualizados = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+        window.dispatchEvent(new CustomEvent('productos-actualizados', { 
+            detail: { productos: productosActualizados } 
+        }));
+        console.log('✅ Evento productos-actualizados disparado');
         
         // Limpiar formulario
         form.reset();
@@ -2457,12 +2468,16 @@ function editarProducto(productoId) {
     const rolValido = currentUser && (
         currentUser.rol === 'administrador' ||
         currentUser.rol === 'super_usuario' ||
+        currentUser.rol === 'dueño' ||
+        currentUser.rol === 'Dueño' ||
+        currentUser.rol === 'vendedor' ||
+        currentUser.rol === 'Vendedor' ||
         currentUser.id === 'super_user_001' ||
         currentUser.id === 'admin_001'
     );
     
     if (!rolValido) {
-        mostrarMensaje('Error', 'Solo el administrador puede editar productos.', 'error');
+        mostrarMensaje('Error', 'No tienes permisos para editar productos.', 'error');
         return;
     }
     
@@ -2499,12 +2514,16 @@ async function eliminarProducto(productoId) {
     const rolValido = currentUser && (
         currentUser.rol === 'administrador' ||
         currentUser.rol === 'super_usuario' ||
+        currentUser.rol === 'dueño' ||
+        currentUser.rol === 'Dueño' ||
+        currentUser.rol === 'vendedor' ||
+        currentUser.rol === 'Vendedor' ||
         currentUser.id === 'super_user_001' ||
         currentUser.id === 'admin_001'
     );
     
     if (!rolValido) {
-        mostrarMensaje('Error', 'Solo el administrador puede eliminar productos.', 'error');
+        mostrarMensaje('Error', 'No tienes permisos para eliminar productos.', 'error');
         return;
     }
     

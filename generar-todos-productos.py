@@ -148,3 +148,4 @@ for cat, count in categoria_count.items():
     print(f"  {cat}: {count} productos")
 
 
+

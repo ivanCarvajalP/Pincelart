@@ -73,3 +73,4 @@ Copy-Item "puntos-control/migrar-productos-completo-final.js" "migrar-productos-
 - Los precios tienen formato correcto o muestran "Consultar"
 
 
+

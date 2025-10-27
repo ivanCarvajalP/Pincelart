@@ -208,15 +208,21 @@ class FirebaseService {
         }
 
         try {
-            const docRef = await this.db.collection('productos').add({
+            // Si el producto ya tiene un ID, usarlo; si no, crear uno nuevo
+            const productoId = producto.id || this.db.collection('productos').doc().id;
+            
+            // Guardar en Firebase con el ID especificado
+            await this.db.collection('productos').doc(productoId).set({
                 ...producto,
+                id: productoId, // Asegurar que el ID esté en los datos
                 fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
                 fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
             });
-            console.log('✅ Producto agregado con ID:', docRef.id);
-            return { success: true, id: docRef.id };
+            
+            console.log('✅ Producto agregado en Firebase con ID:', productoId);
+            return { success: true, id: productoId };
         } catch (error) {
-            console.error('❌ Error agregando producto:', error);
+            console.error('❌ Error agregando producto a Firebase:', error);
             return this.saveProductLocalStorage(producto);
         }
     }
