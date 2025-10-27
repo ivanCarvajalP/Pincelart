@@ -1437,18 +1437,8 @@ function tienePermiso(permiso) {
 function puedeAccederPanelAdmin() {
     if (!currentUser) return false;
     
-    // Super usuario y administrador siempre tienen acceso
-    if (currentUser.rol === 'super_usuario' || currentUser.rol === 'administrador') {
-        return true;
-    }
-    
-    // Dueño tiene acceso
-    if (currentUser.rol === 'dueño') {
-        return true;
-    }
-    
-    // Vendedor tiene acceso
-    if (currentUser.rol === 'vendedor') {
+    // Solo el usuario pivancarvajal@gmail.com puede acceder al panel admin
+    if (currentUser.email === 'pivancarvajal@gmail.com') {
         return true;
     }
     
@@ -1614,14 +1604,11 @@ function mostrarBotonAdmin() {
         let buttonText = 'Panel';
         let buttonColor = 'linear-gradient(135deg, #ff9800, #ffb74d)';
         
-        if (currentUser.rol === 'super_usuario' || currentUser.rol === 'administrador') {
-            buttonText = 'Administrador';
+        if (currentUser.rol === 'super_usuario') {
+            buttonText = 'Super Admin';
             buttonColor = 'linear-gradient(135deg, #d32f2f, #f44336)';
-        } else if (currentUser.rol === 'dueño') {
-            buttonText = 'Dueño';
-            buttonColor = 'linear-gradient(135deg, #7b1fa2, #9c27b0)';
         } else if (currentUser.rol === 'vendedor') {
-            buttonText = 'Vendedor';
+            buttonText = 'Mis Productos';
             buttonColor = 'linear-gradient(135deg, #2e7d32, #4caf50)';
         }
         

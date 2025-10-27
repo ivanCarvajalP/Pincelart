@@ -47,6 +47,16 @@ function cargarInformacionUsuario() {
             const userNameElement = document.getElementById('admin-user-name');
             console.log('📍 Elemento admin-user-name:', userNameElement);
             
+            // Ocultar secciones según el rol (con delay para asegurar que el DOM esté listo)
+            setTimeout(() => {
+                console.log('⏰ Aplicando permisos con delay...');
+                ocultarSeccionesSegunRol(currentUser.rol);
+            }, 100);
+            
+            // También aplicar inmediatamente
+            console.log('🚀 Aplicando permisos inmediatamente...');
+            ocultarSeccionesSegunRol(currentUser.rol);
+            
             if (userNameElement) {
                 // Intentar ambos campos por compatibilidad
                 const nombre = currentUser.nombre || currentUser.name || 'Administrador';
@@ -694,6 +704,67 @@ async function migrarProductosNuevos() {
     } catch (error) {
         console.error('❌ Error en migración:', error);
     }
+}
+
+// Función para ocultar secciones según el rol
+function ocultarSeccionesSegunRol(rol) {
+    console.log('🔐 Configurando permisos para rol:', rol);
+    
+    // Obtener todas las secciones
+    const allSections = document.querySelectorAll('.admin-section');
+    console.log('📋 Total secciones encontradas:', allSections.length);
+    
+    allSections.forEach((section, index) => {
+        const title = section.querySelector('h2');
+        if (!title) {
+            console.log('⚠️ Sección', index, 'sin título');
+            return;
+        }
+        
+        const sectionName = title.textContent.trim();
+        console.log('📌 Procesando sección:', sectionName);
+        
+        // Administrador y Super Usuario: ven todo EXCEPTO Reportes y Configuración
+        if (rol === 'administrador' || rol === 'super_usuario') {
+            if (sectionName === 'Reportes y Estadísticas' || sectionName === 'Configuración del Sistema') {
+                section.style.display = 'none';
+                console.log('  ❌ Admin - Ocultando:', sectionName);
+            } else {
+                section.style.display = 'block';
+                console.log('  ✅ Admin - Mostrando:', sectionName);
+            }
+            return;
+        }
+        
+        // Dueño: ve Gestión Usuario y Gestión Producto (sin Reportes ni Configuración)
+        if (rol === 'dueño') {
+            if (sectionName === 'Gestión de Usuarios' || sectionName === 'Gestión de Productos') {
+                section.style.display = 'block';
+                console.log('  ✅ Dueño - Mostrando:', sectionName);
+            } else {
+                section.style.display = 'none';
+                console.log('  ❌ Dueño - Ocultando:', sectionName);
+            }
+            return;
+        }
+        
+        // Vendedor: solo ve Gestión de Productos
+        if (rol === 'vendedor') {
+            if (sectionName === 'Gestión de Productos') {
+                section.style.display = 'block';
+                console.log('  ✅ Vendedor - Mostrando:', sectionName);
+            } else {
+                section.style.display = 'none';
+                console.log('  ❌ Vendedor - Ocultando:', sectionName);
+            }
+            return;
+        }
+        
+        // Por defecto, ocultar todo
+        section.style.display = 'none';
+    });
+    
+    console.log('✅ Permisos configurados');
 }
 
 // Funciones para gestión de productos
@@ -1628,12 +1699,14 @@ function mostrarGestionUsuarios() {
         return;
     }
     
+    // Admin, super_usuario y dueño pueden gestionar usuarios
     const puedeGestionar = currentUser.rol === 'administrador' || 
                           currentUser.rol === 'super_usuario' ||
+                          currentUser.rol === 'dueño' ||
                           currentUser.id === 'super_user_001';
     
     if (!puedeGestionar) {
-        mostrarMensaje('Error', 'Solo el administrador puede gestionar usuarios.', 'error');
+        mostrarMensaje('Error', 'No tienes permisos para gestionar usuarios.', 'error');
         return;
     }
     
@@ -1756,13 +1829,17 @@ function mostrarCrearUsuario() {
                      currentUser.rol === 'ADMINISTRADOR' ||
                      currentUser.rol === 'super_usuario' ||
                      currentUser.rol === 'super administrador' ||
+                     currentUser.rol === 'dueño' ||
                      currentUser.id === 'super_user_001' ||
                      currentUser.id === 'admin_001';
     
     if (!rolValido) {
-        mostrarMensaje('Error', `Solo el administrador puede crear usuarios. Tu rol actual es: "${currentUser.rol}"`, 'error');
+        mostrarMensaje('Error', `No tienes permisos para crear usuarios. Tu rol actual es: "${currentUser.rol}"`, 'error');
         return;
     }
+    
+    // Determinar si debemos ocultar la opción "administrador" del select
+    const ocultarAdmin = currentUser.rol === 'dueño';
     
     // Crear modal con formulario
     const modal = document.createElement('div');
@@ -1806,8 +1883,8 @@ function mostrarCrearUsuario() {
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #333;">Rol</label>
                     <select name="rol" required style="width: 100%; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1rem;">
+                        ${ocultarAdmin ? '' : '<option value="administrador">Administrador</option>'}
                         <option value="dueño">Dueño</option>
-                        <option value="administrador">Administrador</option>
                         <option value="vendedor">Vendedor</option>
                     </select>
                 </div>
@@ -1907,6 +1984,13 @@ function editarUsuario(usuarioId) {
     
     if (!usuario) {
         mostrarMensaje('Error', 'Usuario no encontrado.', 'error');
+        return;
+    }
+    
+    // Validar permisos: dueño no puede editar administrador
+    const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
+    if (currentUser && currentUser.rol === 'dueño' && (usuario.rol === 'administrador' || usuario.rol === 'super_usuario')) {
+        mostrarMensaje('Error', 'No tienes permisos para editar usuarios con rol de administrador.', 'error');
         return;
     }
     
@@ -2104,7 +2188,11 @@ function generarListaUsuariosNueva(usuarios, currentUser) {
         // Verificar permisos para editar/eliminar
         const puedeGestionar = currentUser.rol === 'administrador' || 
                                currentUser.rol === 'super_usuario' ||
+                               currentUser.rol === 'dueño' ||
                                currentUser.id === 'super_user_001';
+        
+        // Si es dueño, no puede editar/eliminar administradores
+        const puedeEditarEliminar = puedeGestionar && !(currentUser.rol === 'dueño' && (usuario.rol === 'administrador' || usuario.rol === 'super_usuario'));
         
         html += `
             <div style="border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; display: flex; align-items: center; gap: 1rem; transition: all 0.3s;">
@@ -2120,7 +2208,7 @@ function generarListaUsuariosNueva(usuarios, currentUser) {
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
-                    ${puedeGestionar ? `
+                    ${puedeEditarEliminar ? `
                         <button onclick="editarUsuario('${usuario.id}')" 
                                 style="padding: 0.4rem 1rem; background: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.3s;"
                                 onmouseover="this.style.background='#f57c00'; this.style.transform='scale(1.05)'"
@@ -2178,6 +2266,13 @@ async function eliminarUsuario(usuarioId) {
         }
         
         console.log('👤 Usuario:', usuario.name);
+        
+        // 2. Validar permisos: dueño no puede eliminar administrador
+        const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
+        if (currentUser && currentUser.rol === 'dueño' && (usuario.rol === 'administrador' || usuario.rol === 'super_usuario')) {
+            mostrarMensaje('Error', 'No tienes permisos para eliminar usuarios con rol de administrador.', 'error');
+            return;
+        }
         
         // 2. Confirmar con modal personalizado simple
         console.log('💬 Mostrando confirmación...');
