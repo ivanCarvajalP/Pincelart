@@ -289,10 +289,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.log(`✅ Tarjeta creada para: ${producto.nombre}`);
         });
         
-        // Reconfigurar event listeners para las nuevas tarjetas
+        // NO volver a llamar initEcommerce() porque ya está inicializado con el flag
+        // Los event listeners ya están configurados y funcionarán para nuevos productos
         if (productosSinTarjeta.length > 0) {
             setTimeout(() => {
-                initEcommerce();
+                // Solo reconfigurar filtros, NO ecommerce
                 initFiltrosCategorias();
             }, 100);
         }
