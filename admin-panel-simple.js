@@ -873,8 +873,35 @@ async function mostrarGestionProductos() {
 
 async function cargarProductosEnModal(modal) {
     try {
-        let productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        console.log(`📦 ${productos.length} productos obtenidos de localStorage`);
+        let productos = [];
+        
+        // PRIORIDAD 1: Intentar cargar desde Firebase
+        if (window.firebaseService && window.firebaseService.initialized) {
+            console.log('🔥 Cargando productos desde Firebase...');
+            try {
+                const result = await window.firebaseService.getAllProducts();
+                if (result.success && result.data && result.data.length > 0) {
+                    productos = result.data;
+                    console.log(`🔥 ${productos.length} productos cargados desde Firebase`);
+                    
+                    // Actualizar localStorage como backup
+                    localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+                    console.log('✅ localStorage actualizado con productos de Firebase');
+                } else {
+                    console.log('⚠️ Firebase vacío, cargando desde localStorage...');
+                    productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+                    console.log(`📦 ${productos.length} productos obtenidos de localStorage`);
+                }
+            } catch (error) {
+                console.error('❌ Error cargando desde Firebase:', error);
+                console.log('💾 Fallback: Cargando desde localStorage...');
+                productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+                console.log(`📦 ${productos.length} productos obtenidos de localStorage`);
+            }
+        } else {
+            productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+            console.log(`📦 ${productos.length} productos obtenidos de localStorage (Firebase no disponible)`);
+        }
         
         // LIMPIAR DUPLICADOS
         const productosUnicos = [];
