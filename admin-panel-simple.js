@@ -10,8 +10,62 @@ document.addEventListener('DOMContentLoaded', async function() {
             await firebaseService.init();
             window.firebaseService = firebaseService;
             console.log('🔥 Firebase Service inicializado');
+            
+            // Configurar listener en tiempo real para sincronización automática
+            if (firebaseService && firebaseService.initialized) {
+                firebaseService.onProductosChange((error, productos) => {
+                    if (error) {
+                        console.error('❌ Error en sincronización:', error);
+                        return;
+                    }
+                    console.log('🔄 Productos sincronizados desde Firebase en Admin Panel:', productos.length);
+                    
+                    // Actualizar localStorage con los productos sincronizados
+                    localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+                    
+                    // Si el modal de gestión está abierto, actualizar la lista
+                    const modalGestion = document.querySelector('.modal-productos');
+                    if (modalGestion && typeof cargarProductosEnModal === 'function') {
+                        console.log('🔄 Actualizando lista de gestión automáticamente...');
+                        cargarProductosEnModal(modalGestion);
+                    }
+                    
+                    // Disparar evento global para actualizar otros módulos
+                    window.dispatchEvent(new CustomEvent('productos-actualizados', { 
+                        detail: { productos } 
+                    }));
+                });
+                console.log('👂 Listener de Firebase configurado en Admin Panel - Sincronización en tiempo real activa');
+            }
         } catch (error) {
             console.error('❌ Error inicializando Firebase Service:', error);
+        }
+    } else {
+        // Si firebaseService ya existe, configurar el listener
+        if (window.firebaseService && window.firebaseService.initialized) {
+            window.firebaseService.onProductosChange((error, productos) => {
+                if (error) {
+                    console.error('❌ Error en sincronización:', error);
+                    return;
+                }
+                console.log('🔄 Productos sincronizados desde Firebase en Admin Panel:', productos.length);
+                
+                // Actualizar localStorage
+                localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+                
+                // Si el modal de gestión está abierto, actualizar la lista
+                const modalGestion = document.querySelector('.modal-productos');
+                if (modalGestion && typeof cargarProductosEnModal === 'function') {
+                    console.log('🔄 Actualizando lista de gestión automáticamente...');
+                    cargarProductosEnModal(modalGestion);
+                }
+                
+                // Disparar evento global
+                window.dispatchEvent(new CustomEvent('productos-actualizados', { 
+                    detail: { productos } 
+                }));
+            });
+            console.log('👂 Listener de Firebase configurado en Admin Panel (existente)');
         }
     }
     
@@ -1670,10 +1724,12 @@ async function crearProducto(form) {
             categoria: formData.get('categoria'),
             precio: parseInt(formData.get('precio')),
             stock: parseInt(formData.get('stock')),
-            estado: formData.get('estado'),
+            estado: 'activo', // SIEMPRE activo para que se vea en el catálogo público
             fechaCreacion: new Date().toISOString(),
             fechaActualizacion: new Date().toISOString()
         };
+        
+        console.log('✅ Producto creado con estado: activo (siempre visible en catálogo)');
         
         // Validar campos
         if (!nuevoProducto.nombre || !nuevoProducto.descripcion || !nuevoProducto.precio || nuevoProducto.stock < 0) {

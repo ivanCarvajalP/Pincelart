@@ -39,6 +39,21 @@ document.addEventListener('DOMContentLoaded', async function() {
         await firebaseService.init();
         window.firebaseService = firebaseService;
         console.log('🔥 Firebase Service inicializado');
+        
+        // Configurar listener en tiempo real para sincronización automática
+        if (firebaseService && firebaseService.initialized) {
+            firebaseService.onProductosChange((error, productos) => {
+                if (error) {
+                    console.error('❌ Error en sincronización:', error);
+                    return;
+                }
+                console.log('🔄 Productos sincronizados desde Firebase:', productos.length);
+                
+                // Actualizar catálogo automáticamente
+                actualizarCatalogoDesdeGestión();
+            });
+            console.log('👂 Listener de Firebase configurado - Todos los usuarios verán cambios en tiempo real');
+        }
     } catch (error) {
         console.error('❌ Error inicializando Firebase Service:', error);
     }
@@ -137,27 +152,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.querySelectorAll('.producto-card').forEach(tarjeta => {
             const dataProducto = tarjeta.getAttribute('data-producto');
             const dataCategoria = tarjeta.getAttribute('data-categoria');
+            const dataId = tarjeta.getAttribute('data-id');
             
             if (!dataProducto || !dataCategoria) return;
             
-            // Buscar producto en localStorage que coincida (con normalización)
-            const dataProductoNormalizado = dataProducto.toLowerCase().replace(/-/g, '');
-            const producto = productosGestion.find(p => {
-                // Normalizar imagen sin guiones
-                const imagenNormalizada = p.imagen ? p.imagen.toLowerCase().replace(/-/g, '') : '';
-                const imagenMatch = imagenNormalizada.includes(dataProductoNormalizado);
-                
-                // También buscar en nombre
-                const nombreNormalizado = p.nombre ? p.nombre.toLowerCase().replace(/-/g, '') : '';
-                const nombreMatch = nombreNormalizado.includes(dataProductoNormalizado);
-                
-                const categoriaMatch = p.categoria === dataCategoria;
-                
-                return (imagenMatch || nombreMatch) && categoriaMatch;
-            });
+            // Buscar producto por ID primero (más preciso)
+            let producto = null;
+            if (dataId) {
+                producto = productosGestion.find(p => p.id === dataId);
+            }
+            
+            // Si no se encontró por ID, buscar por nombre/categoría
+            if (!producto) {
+                const dataProductoNormalizado = dataProducto.toLowerCase().replace(/-/g, '');
+                producto = productosGestion.find(p => {
+                    // Normalizar imagen sin guiones
+                    const imagenNormalizada = p.imagen ? p.imagen.toLowerCase().replace(/-/g, '') : '';
+                    const imagenMatch = imagenNormalizada.includes(dataProductoNormalizado);
+                    
+                    // También buscar en nombre
+                    const nombreNormalizado = p.nombre ? p.nombre.toLowerCase().replace(/-/g, '') : '';
+                    const nombreMatch = nombreNormalizado.includes(dataProductoNormalizado);
+                    
+                    const categoriaMatch = p.categoria === dataCategoria;
+                    
+                    return (imagenMatch || nombreMatch) && categoriaMatch;
+                });
+            }
             
             if (producto) {
-                console.log(`🔍 Encontrado producto: ${dataProducto} → ${producto.nombre}`);
+                console.log(`🔍 Encontrado producto: ${dataProducto} (ID: ${producto.id}) → ${producto.nombre}`);
+                
                 // Actualizar precio
                 const precioEl = tarjeta.querySelector('.precio');
                 if (precioEl) {
@@ -169,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                 stockEls.forEach(el => {
                     if (el.textContent.includes('Stock:')) {
                         el.textContent = `Stock: ${producto.stock || 1}`;
+                        el.style.color = producto.stock > 0 ? '#4caf50' : '#f44336';
                     }
                 });
                 
@@ -176,6 +202,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                 const descEl = tarjeta.querySelector('p');
                 if (descEl && producto.descripcion) {
                     descEl.textContent = producto.descripcion;
+                }
+                
+                // Actualizar nombre
+                const nombreEl = tarjeta.querySelector('h3');
+                if (nombreEl && producto.nombre) {
+                    nombreEl.textContent = producto.nombre;
                 }
                 
                 // Actualizar imagen SIEMPRE (sea Base64 o URL)
@@ -187,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                     }
                 }
                 
-                console.log(`✅ Actualizado: ${dataProducto} - $${producto.precio}`);
+                console.log(`✅ Actualizado: ${producto.nombre} - $${producto.precio}`);
             } else {
                 console.log(`⚠️ No se encontró producto para: ${dataProducto} en categoría ${dataCategoria}`);
             }
@@ -225,9 +257,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         // Encontrar productos sin tarjeta
         const productosSinTarjeta = productosActivos.filter(p => {
-            // Verificar si el producto ya tiene tarjeta
-            const tieneTarjeta = productosConTarjeta.has(p.id) || 
-                               productosConTarjeta.has(p.nombre?.toLowerCase());
+            // Normalizar IDs y nombres
+            const idProducto = p.id || '';
+            const nombreNormalizado = p.nombre?.toLowerCase().replace(/\s+/g, '-') || '';
+            
+            // Verificar si el producto ya tiene tarjeta por ID o nombre
+            const tieneTarjetaPorId = productosConTarjeta.has(idProducto);
+            const tieneTarjetaPorNombre = nombreNormalizado && productosConTarjeta.has(nombreNormalizado);
+            
+            // También verificar si ya existe una tarjeta con el mismo nombre
+            const existeTarjetaSimilar = tarjetasExistentes.some(tarjeta => {
+                const titulo = tarjeta.querySelector('h3')?.textContent?.toLowerCase().replace(/\s+/g, '-');
+                return titulo === nombreNormalizado;
+            });
+            
+            const tieneTarjeta = tieneTarjetaPorId || tieneTarjetaPorNombre || existeTarjetaSimilar;
+            
+            if (!tieneTarjeta) {
+                console.log(`🆕 Producto sin tarjeta: ${p.nombre} (ID: ${p.id})`);
+            }
+            
             return !tieneTarjeta;
         });
         
