@@ -564,6 +564,9 @@ function mostrarSeccion(seccion) {
     }
 }
 
+// Variable para asegurar que los event listeners solo se agreguen una vez
+let ecommerceListenersInitialized = false;
+
 // Funciones de e-commerce básicas
 function initEcommerce() {
     console.log('Inicializando e-commerce...');
@@ -571,124 +574,130 @@ function initEcommerce() {
     // Agregar data-producto a los botones "Ver Detalles" que no lo tienen
     const btnVerDetalles = document.querySelectorAll('.btn-ver');
     btnVerDetalles.forEach(btn => {
-        if (!btn.hasAttribute('data-producto')) {
-            const productoCard = btn.closest('.producto-card');
-            if (productoCard && productoCard.dataset.producto) {
-                btn.setAttribute('data-producto', productoCard.dataset.producto);
+            if (!btn.hasAttribute('data-producto')) {
+                const productoCard = btn.closest('.producto-card');
+                if (productoCard && productoCard.dataset.producto) {
+                    btn.setAttribute('data-producto', productoCard.dataset.producto);
+                }
             }
-        }
     });
     
-    // Event listener para formulario de registro
-    const formRegistro = document.getElementById('formRegistroCliente');
-    if (formRegistro) {
-        formRegistro.addEventListener('submit', manejarRegistroCliente);
-        console.log('✅ Event listener agregado para formulario de registro');
-    } else {
-        console.warn('⚠️ No se encontró el formulario de registro');
-    }
-    
-    // Event listeners para botones de carrito y favoritos
-    document.addEventListener('click', function(e) {
-        console.log('Click detectado en:', e.target);
-        console.log('Clases del elemento:', e.target.classList);
-        
-        if (e.target.classList.contains('btn-carrito')) {
-            const productoCard = e.target.closest('.producto-card');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón carrito clickeado, producto ID:', productoId);
-                console.log('Usuario actual:', currentUser);
-                agregarAlCarrito(productoId);
-            } else {
-                console.error('No se encontró .producto-card padre');
-            }
+    // Event listeners SOLO se agregan UNA VEZ
+    if (!ecommerceListenersInitialized) {
+        // Event listener para formulario de registro
+        const formRegistro = document.getElementById('formRegistroCliente');
+        if (formRegistro) {
+            formRegistro.addEventListener('submit', manejarRegistroCliente);
+            console.log('✅ Event listener agregado para formulario de registro');
+        } else {
+            console.warn('⚠️ No se encontró el formulario de registro');
         }
         
-        if (e.target.classList.contains('btn-favorito')) {
-            const productoCard = e.target.closest('.producto-card');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón favorito clickeado, producto ID:', productoId);
-                toggleFavorito(productoId);
+        // Event listeners para botones de carrito, favoritos y compra
+        document.addEventListener('click', function(e) {
+            console.log('Click detectado en:', e.target);
+            console.log('Clases del elemento:', e.target.classList);
+            
+            if (e.target.classList.contains('btn-carrito')) {
+                const productoCard = e.target.closest('.producto-card');
+                if (productoCard) {
+                    const productoId = productoCard.dataset.producto;
+                    console.log('Botón carrito clickeado, producto ID:', productoId);
+                    console.log('Usuario actual:', currentUser);
+                    agregarAlCarrito(productoId);
+                } else {
+                    console.error('No se encontró .producto-card padre');
+                }
             }
-        }
-        
-        if (e.target.classList.contains('btn-compra')) {
-            const productoCard = e.target.closest('.producto-card');
-            if (productoCard) {
-                const productoId = productoCard.dataset.producto;
-                console.log('Botón compra clickeado, producto ID:', productoId);
-                comprarAhora(productoId);
+            
+            if (e.target.classList.contains('btn-favorito')) {
+                const productoCard = e.target.closest('.producto-card');
+                if (productoCard) {
+                    const productoId = productoCard.dataset.producto;
+                    console.log('Botón favorito clickeado, producto ID:', productoId);
+                    toggleFavorito(productoId);
+                }
             }
-        }
-        
-        
-        // Event listener para botones "Ver Detalles" del overlay
-        if (e.target.classList.contains('btn-ver')) {
-            const productoCard = e.target.closest('.producto-card');
-            if (productoCard) {
-                let productoId = productoCard.dataset.producto;
-                
-                // Si no tiene data-producto, intentar obtenerlo del título del producto
-                if (!productoId) {
-                    const h3 = productoCard.querySelector('h3');
-                    if (h3) {
-                        productoId = h3.textContent.trim().toLowerCase();
-                        console.log('📌 No hay data-producto, usando título:', productoId);
+            
+            if (e.target.classList.contains('btn-compra')) {
+                const productoCard = e.target.closest('.producto-card');
+                if (productoCard) {
+                    const productoId = productoCard.dataset.producto;
+                    console.log('Botón compra clickeado, producto ID:', productoId);
+                    comprarAhora(productoId);
+                }
+            }
+            
+            // Event listener para botones "Ver Detalles" del overlay
+            if (e.target.classList.contains('btn-ver')) {
+                const productoCard = e.target.closest('.producto-card');
+                if (productoCard) {
+                    let productoId = productoCard.dataset.producto;
+                    
+                    // Si no tiene data-producto, intentar obtenerlo del título del producto
+                    if (!productoId) {
+                        const h3 = productoCard.querySelector('h3');
+                        if (h3) {
+                            productoId = h3.textContent.trim().toLowerCase();
+                            console.log('📌 No hay data-producto, usando título:', productoId);
+                        }
+                    }
+                    
+                    console.log('🔴 Botón Ver Detalles overlay clickeado, producto ID:', productoId);
+                    
+                    if (productoId) {
+                        mostrarDetallesProducto(productoId);
+                    } else {
+                        console.error('❌ No se pudo obtener el ID del producto');
                     }
                 }
-                
-                console.log('🔴 Botón Ver Detalles overlay clickeado, producto ID:', productoId);
-                
-                if (productoId) {
-                    mostrarDetallesProducto(productoId);
-                } else {
-                    console.error('❌ No se pudo obtener el ID del producto');
-                }
             }
+            
+            // Event listener para botones "Ver Más" de productos
+            if (e.target.classList.contains('btn-ver-mas-producto')) {
+                const tipo = e.target.getAttribute('data-tipo');
+                console.log('Botón Ver Más producto clickeado, tipo:', tipo);
+                mostrarTodosProductosTipo(tipo);
+            }
+        });
+        
+        // Event listeners para navegación
+        const navCarrito = document.getElementById('nav-carrito');
+        const navFavoritos = document.getElementById('nav-favoritos');
+        
+        if (navCarrito) {
+            navCarrito.addEventListener('click', (e) => {
+                e.preventDefault();
+                mostrarSeccion('carrito');
+            });
         }
         
-        // Event listener para botones "Ver Más" de productos
-        if (e.target.classList.contains('btn-ver-mas-producto')) {
-            const tipo = e.target.getAttribute('data-tipo');
-            console.log('Botón Ver Más producto clickeado, tipo:', tipo);
-            mostrarTodosProductosTipo(tipo);
+        if (navFavoritos) {
+            navFavoritos.addEventListener('click', (e) => {
+                e.preventDefault();
+                mostrarSeccion('favoritos');
+            });
         }
-    });
-    
-    // Event listeners para navegación
-    const navCarrito = document.getElementById('nav-carrito');
-    const navFavoritos = document.getElementById('nav-favoritos');
-    
-    if (navCarrito) {
-        navCarrito.addEventListener('click', (e) => {
-            e.preventDefault();
-            mostrarSeccion('carrito');
-        });
-    }
-    
-    if (navFavoritos) {
-        navFavoritos.addEventListener('click', (e) => {
-            e.preventDefault();
-            mostrarSeccion('favoritos');
-        });
-    }
-    
-    // Event listener para cerrar modal
-    const modalCerrar = document.getElementById('modal-cerrar');
-    const modalProductos = document.getElementById('modal-productos');
-    
-    if (modalCerrar) {
-        modalCerrar.addEventListener('click', cerrarModal);
-    }
-    
-    if (modalProductos) {
-        modalProductos.addEventListener('click', function(e) {
-            if (e.target === this) {
-                cerrarModal();
-            }
-        });
+        
+        // Event listener para cerrar modal
+        const modalCerrar = document.getElementById('modal-cerrar');
+        const modalProductos = document.getElementById('modal-productos');
+        
+        if (modalCerrar) {
+            modalCerrar.addEventListener('click', cerrarModal);
+        }
+        
+        if (modalProductos) {
+            modalProductos.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    cerrarModal();
+                }
+            });
+        }
+        
+        // Marcar como inicializado
+        ecommerceListenersInitialized = true;
+        console.log('✅ Event listeners agregados (solo una vez)');
     }
     
     console.log('E-commerce inicializado correctamente');
@@ -1868,17 +1877,16 @@ async function cargarProductos() {
             console.log(`📊 Productos en localStorage: ${productosTemp.length}`);
         }
         
-        // SI hay muy pocos productos (menos de 100), limpiar y cargar desde migración
-        if (productosTemp.length > 0 && productosTemp.length < 100) {
-            console.log('⚠️ Detectados pocos productos en localStorage. Limpiando y recargando...');
-            localStorage.removeItem('pincelart_productos');
-            // Recargar página automáticamente para cargar los 166 productos
-            console.log('🔄 Recargando página para cargar 166 productos...');
-            setTimeout(() => {
-                window.location.reload();
-            }, 100);
-            return; // Salir temprano para evitar ejecutar el resto del código
-        }
+        // COMENTADO: Esta lógica causaba recargas infinitas y reintroducía productos eliminados
+        // if (productosTemp.length > 0 && productosTemp.length < 100) {
+        //     console.log('⚠️ Detectados pocos productos en localStorage. Limpiando y recargando...');
+        //     localStorage.removeItem('pincelart_productos');
+        //     console.log('🔄 Recargando página para cargar 166 productos...');
+        //     setTimeout(() => {
+        //         window.location.reload();
+        //     }, 100);
+        //     return;
+        // }
         
         // LIMPIAR DUPLICADOS
         const productosUnicos = [];

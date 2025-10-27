@@ -23,12 +23,13 @@ document.addEventListener('DOMContentLoaded', async function() {
                     // Actualizar localStorage con los productos sincronizados
                     localStorage.setItem('pincelart_productos', JSON.stringify(productos));
                     
-                    // Si el modal de gestión está abierto, actualizar la lista
-                    const modalGestion = document.querySelector('.modal-productos');
-                    if (modalGestion && typeof cargarProductosEnModal === 'function') {
-                        console.log('🔄 Actualizando lista de gestión automáticamente...');
-                        cargarProductosEnModal(modalGestion);
-                    }
+                // Si el modal de gestión está abierto, actualizar la lista
+                const modalGestion = document.querySelector('.modal-productos');
+                if (modalGestion) {
+                    console.log('🔄 Actualizando lista de gestión automáticamente...');
+                    // Actualizar directamente la lista sin recargar desde Firebase
+                    actualizarListaDesdeProductos(modalGestion, productos);
+                }
                     
                     // Disparar evento global para actualizar otros módulos
                     window.dispatchEvent(new CustomEvent('productos-actualizados', { 
@@ -55,9 +56,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 
                 // Si el modal de gestión está abierto, actualizar la lista
                 const modalGestion = document.querySelector('.modal-productos');
-                if (modalGestion && typeof cargarProductosEnModal === 'function') {
+                if (modalGestion) {
                     console.log('🔄 Actualizando lista de gestión automáticamente...');
-                    cargarProductosEnModal(modalGestion);
+                    // Actualizar directamente la lista sin recargar desde Firebase
+                    // porque productos ya tiene los datos actualizados del listener
+                    actualizarListaDesdeProductos(modalGestion, productos);
                 }
                 
                 // Disparar evento global
@@ -69,11 +72,23 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    // Cargar información del usuario
-    cargarInformacionUsuario();
+    // Esperar a que el DOM esté completamente listo antes de cargar datos
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', cargarInformacionUsuario);
+    } else {
+        // DOM ya está listo
+        cargarInformacionUsuario();
+    }
+    
+    // También intentar cargar después de un breve delay como respaldo
+    setTimeout(() => {
+        cargarInformacionUsuario();
+    }, 100);
     
     // Cargar estadísticas
-    cargarEstadisticas();
+    setTimeout(() => {
+        cargarEstadisticas();
+    }, 200);
     
     // MIGRACIÓN LIMPIA DESDE CERO - EJECUTAR ANTES DE MOSTRAR EL PANEL
     // console.log('🔧 Ejecutando migración limpia desde cero...');
@@ -92,40 +107,58 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function cargarInformacionUsuario() {
+    console.log('🔍 [INICIO] Cargando información de usuario...');
+    
     try {
-        console.log('🔍 Buscando usuario en localStorage...');
-        const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
-        console.log('👤 Usuario encontrado:', currentUser);
+        const userData = localStorage.getItem('pincelart_current_user');
+        console.log('🔍 [DATA] Datos crudos:', userData);
+        
+        if (!userData) {
+            console.error('❌ No hay datos de usuario en localStorage');
+            const userNameElement = document.getElementById('admin-user-name');
+            if (userNameElement) {
+                userNameElement.textContent = 'Sin usuario';
+            }
+            return;
+        }
+        
+        const currentUser = JSON.parse(userData);
+        console.log('👤 [USER] Usuario encontrado:', currentUser);
         
         if (currentUser) {
             const userNameElement = document.getElementById('admin-user-name');
-            console.log('📍 Elemento admin-user-name:', userNameElement);
+            console.log('📍 [ELEMENT] Elemento admin-user-name:', userNameElement);
             
-            // Ocultar secciones según el rol (con delay para asegurar que el DOM esté listo)
+            if (userNameElement) {
+                const nombre = currentUser.nombre || currentUser.name || currentUser.email || 'Administrador';
+                userNameElement.textContent = nombre;
+                console.log('✅ [NOMBRE] Nombre establecido:', nombre);
+            } else {
+                console.error('❌ [ERROR] No se encontró el elemento #admin-user-name');
+            }
+            
+            // Aplicar permisos según el rol
+            console.log('🔐 [PERMISOS] Aplicando permisos para rol:', currentUser.rol);
             setTimeout(() => {
-                console.log('⏰ Aplicando permisos con delay...');
                 ocultarSeccionesSegunRol(currentUser.rol);
             }, 100);
             
-            // También aplicar inmediatamente
-            console.log('🚀 Aplicando permisos inmediatamente...');
-            ocultarSeccionesSegunRol(currentUser.rol);
+            console.log('✅ [FIN] Usuario cargado correctamente');
             
-            if (userNameElement) {
-                // Intentar ambos campos por compatibilidad
-                const nombre = currentUser.nombre || currentUser.name || 'Administrador';
-                userNameElement.textContent = nombre;
-                console.log('✅ Nombre establecido:', nombre);
-            } else {
-                console.error('❌ No se encontró el elemento #admin-user-name');
-            }
         } else {
-            console.log('⚠️ No hay usuario logueado, redirigiendo a login...');
-            // Descomentar esta línea si quieres redirigir automáticamente
-            // window.location.href = 'login.html';
+            console.log('⚠️ Usuario es null o undefined');
+            const userNameElement = document.getElementById('admin-user-name');
+            if (userNameElement) {
+                userNameElement.textContent = 'Sin usuario';
+            }
         }
     } catch (error) {
-        console.error('❌ Error cargando usuario:', error);
+        console.error('❌ [ERROR] Error cargando usuario:', error);
+        console.error('❌ [ERROR] Stack:', error.stack);
+        const userNameElement = document.getElementById('admin-user-name');
+        if (userNameElement) {
+            userNameElement.textContent = 'Error al cargar';
+        }
     }
 }
 
@@ -796,19 +829,14 @@ function ocultarSeccionesSegunRol(rol) {
         const sectionName = title.textContent.trim();
         console.log('📌 Procesando sección:', sectionName);
         
-        // Administrador y Super Usuario: ven todo EXCEPTO Reportes y Configuración
+        // Administrador y Super Usuario: ven todo
         if (rol === 'administrador' || rol === 'super_usuario') {
-            if (sectionName === 'Reportes y Estadísticas' || sectionName === 'Configuración del Sistema') {
-                section.style.display = 'none';
-                console.log('  ❌ Admin - Ocultando:', sectionName);
-            } else {
-                section.style.display = 'block';
-                console.log('  ✅ Admin - Mostrando:', sectionName);
-            }
+            section.style.display = 'block';
+            console.log('  ✅ Admin/Super - Mostrando:', sectionName);
             return;
         }
         
-        // Dueño: ve Gestión Usuario y Gestión Producto (sin Reportes ni Configuración)
+        // Dueño: ve Gestión Usuario y Gestión Producto
         if (rol === 'dueño') {
             if (sectionName === 'Gestión de Usuarios' || sectionName === 'Gestión de Productos') {
                 section.style.display = 'block';
@@ -832,8 +860,9 @@ function ocultarSeccionesSegunRol(rol) {
             return;
         }
         
-        // Por defecto, ocultar todo
-        section.style.display = 'none';
+        // Por defecto, mostrar todo
+        section.style.display = 'block';
+        console.log('  ✅ Por defecto - Mostrando:', sectionName);
     });
     
     console.log('✅ Permisos configurados');
@@ -974,34 +1003,12 @@ async function cargarProductosEnModal(modal) {
             localStorage.setItem('pincelart_productos', JSON.stringify(productos));
         }
         
-        // SI localStorage está vacío o tiene más de 200 productos, limpiar y cargar desde carpetas
-        if (productos.length === 0 || productos.length > 200) {
-            console.log('🔄 Limpiando localStorage y cargando 166 productos desde carpetas locales...');
-            
-            if (typeof window.obtenerProductosLocales === 'function') {
-                const productosLocales = window.obtenerProductosLocales();
-                console.log(`📦 ${productosLocales.length} productos en carpetas locales`);
-                
-                // Crear mapa de productos únicos por ID
-                const mapUnicos = new Map();
-                productosLocales.forEach(p => {
-                    if (!mapUnicos.has(p.id)) {
-                        mapUnicos.set(p.id, p);
-                    }
-                });
-                
-                productos = Array.from(mapUnicos.values());
-                console.log(`✨ ${productos.length} productos únicos desde carpetas`);
-                
-                // Guardar SOLO estos 166 productos en localStorage
-                localStorage.setItem('pincelart_productos', JSON.stringify(productos));
-                console.log('✅ 166 productos guardados en localStorage');
-            } else {
-                console.log('⚠️ No se puede cargar desde carpetas locales');
-            }
+        // NO CARGAR desde carpetas locales
+        // Firebase es la fuente única de verdad - si no hay productos en Firebase, no hay nada que mostrar
+        if (productos.length === 0) {
+            console.log('⚠️ No hay productos en Firebase ni localStorage - lista vacía');
         } else {
-            // Ya hay productos en localStorage, usarlos
-            console.log(`✅ Usando ${productos.length} productos de localStorage`);
+            console.log(`✅ Usando ${productos.length} productos de Firebase/localStorage`);
         }
         
         // Guardar todos los productos para filtrar
@@ -1090,6 +1097,32 @@ function actualizarListaProductos() {
     if (modal) {
         cargarProductosEnModal(modal);
     }
+}
+
+// Función para actualizar la lista usando productos ya obtenidos del listener
+function actualizarListaDesdeProductos(modal, productos) {
+    console.log(`🔄 Actualizando lista con ${productos.length} productos desde listener`);
+    
+    // Actualizar variables globales
+    productosTodos = productos;
+    
+    // Actualizar filtros de categorías dinámicamente
+    actualizarFiltrosCategoriasEnModal(modal, productos);
+    
+    // Obtener categoría activa
+    const filtroActivo = modal.querySelector('.filtro-categoria[style*="background: #1976d2"]');
+    const categoriaActiva = filtroActivo ? filtroActivo.dataset.categoria : 'todos';
+    
+    // Filtrar productos según categoría activa
+    let productosFiltrados = productos;
+    if (categoriaActiva !== 'todos') {
+        productosFiltrados = productos.filter(p => p.categoria && p.categoria.toLowerCase() === categoriaActiva.toLowerCase());
+    }
+    
+    productosFiltradosActuales = productosFiltrados;
+    
+    // Renderizar la lista
+    renderizarListaProductos(modal, productosFiltrados);
 }
 
 function renderizarListaProductos(modal, productos) {
@@ -1367,18 +1400,21 @@ function actualizarFiltrosCategoriasEnModal(modal, productos) {
     const categorias = [...new Set(productos.map(p => p.categoria).filter(c => c))];
     
     console.log('📊 Categorías actualizadas:', categorias);
+    console.log('📊 Productos por categoría:', categorias.map(c => `${c}: ${productos.filter(p => p.categoria === c).length}`));
     
-    // Buscar el contenedor de filtros
-    const filtrosContainer = modal.querySelector('.filtros-categorias');
-    if (!filtrosContainer) return;
+    // Buscar el contenedor de filtros (el ID correcto es #filtros-dinamicos)
+    const filtrosContainer = modal.querySelector('#filtros-dinamicos');
+    if (!filtrosContainer) {
+        console.error('❌ No se encontró el contenedor #filtros-dinamicos');
+        return;
+    }
     
     // Guardar botón "Todos" existente
     const filtroTodos = filtrosContainer.querySelector('.filtro-categoria[data-categoria="todos"]');
     const todosHTML = filtroTodos ? filtroTodos.outerHTML : '';
     
     // Crear nuevos filtros dinámicamente SOLO con categorías que existen
-    let filtrosHTML = filtroTodos ? `<div class="filtros-categorias" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">${todosHTML}` : 
-                      '<div class="filtros-categorias" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">';
+    let filtrosHTML = todosHTML;
     
     // Agregar filtros SOLO para categorías que tienen productos
     categorias.forEach(categoria => {
@@ -1392,13 +1428,11 @@ function actualizarFiltrosCategoriasEnModal(modal, productos) {
         }
     });
     
-    filtrosHTML += '</div>';
+    // Reemplazar contenido del contenedor de filtros
+    filtrosContainer.innerHTML = filtrosHTML;
     
-    // Reemplazar contenedor de filtros
-    filtrosContainer.outerHTML = filtrosHTML;
-    
-    // Reconfigurar eventos de los filtros CON ILUMINACIÓN
-    const nuevosFiltros = document.querySelectorAll('.filtro-categoria');
+    // Reconfigurar eventos de los filtros CON ILUMINACIÓN (buscar dentro del modal)
+    const nuevosFiltros = modal.querySelectorAll('.filtro-categoria');
     nuevosFiltros.forEach(filtro => {
         filtro.addEventListener('click', function() {
             // ILUMINAR botón seleccionado
@@ -1417,6 +1451,7 @@ function actualizarFiltrosCategoriasEnModal(modal, productos) {
     });
     
     console.log('✅ Filtros de categorías actualizados:', categorias);
+    console.log('✅ Total botones de filtro creados:', nuevosFiltros.length);
 }
 
 // Función para cerrar todos los modales y limpiar overlays
@@ -1600,18 +1635,18 @@ function mostrarCrearProducto() {
     
     // Verificar permisos del usuario actual
     const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
-    const rolValido = currentUser && (
-        currentUser.rol === 'administrador' ||
-        currentUser.rol === 'Administrador' ||
-        currentUser.rol === 'ADMINISTRADOR' ||
-        currentUser.rol === 'super_usuario' ||
-        currentUser.rol === 'dueño' ||
-        currentUser.rol === 'Dueño' ||
-        currentUser.rol === 'vendedor' ||
-        currentUser.rol === 'Vendedor' ||
-        currentUser.id === 'super_user_001' ||
-        currentUser.id === 'admin_001'
+    console.log('🔍 [CREAR] Usuario actual:', currentUser);
+    console.log('🔍 [CREAR] Rol:', currentUser?.rol);
+    
+    // Solo administrador, dueño y vendedor pueden crear productos (comparar sin case-sensitive)
+    const rolValido = currentUser && currentUser.rol && (
+        currentUser.rol.toLowerCase() === 'administrador' ||
+        currentUser.rol.toLowerCase() === 'super_usuario' || // Compatibilidad con admin antiguo
+        currentUser.rol.toLowerCase() === 'dueño' ||
+        currentUser.rol.toLowerCase() === 'vendedor'
     );
+    
+    console.log('🔍 [CREAR] ¿Rol válido?', rolValido);
     
     if (!rolValido) {
         mostrarMensaje('Error', 'No tienes permisos para agregar productos.', 'error');
@@ -2534,16 +2569,18 @@ function editarProducto(productoId) {
     
     // Verificar permisos del usuario actual
     const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
-    const rolValido = currentUser && (
-        currentUser.rol === 'administrador' ||
-        currentUser.rol === 'super_usuario' ||
-        currentUser.rol === 'dueño' ||
-        currentUser.rol === 'Dueño' ||
-        currentUser.rol === 'vendedor' ||
-        currentUser.rol === 'Vendedor' ||
-        currentUser.id === 'super_user_001' ||
-        currentUser.id === 'admin_001'
+    console.log('🔍 [EDITAR] Usuario actual:', currentUser);
+    console.log('🔍 [EDITAR] Rol:', currentUser?.rol);
+    
+    // Solo administrador, dueño y vendedor pueden editar productos (comparar sin case-sensitive)
+    const rolValido = currentUser && currentUser.rol && (
+        currentUser.rol.toLowerCase() === 'administrador' ||
+        currentUser.rol.toLowerCase() === 'super_usuario' || // Compatibilidad con admin antiguo
+        currentUser.rol.toLowerCase() === 'dueño' ||
+        currentUser.rol.toLowerCase() === 'vendedor'
     );
+    
+    console.log('🔍 [EDITAR] ¿Rol válido?', rolValido);
     
     if (!rolValido) {
         mostrarMensaje('Error', 'No tienes permisos para editar productos.', 'error');
@@ -2580,16 +2617,18 @@ async function eliminarProducto(productoId) {
     
     // Verificar permisos del usuario actual
     const currentUser = JSON.parse(localStorage.getItem('pincelart_current_user'));
-    const rolValido = currentUser && (
-        currentUser.rol === 'administrador' ||
-        currentUser.rol === 'super_usuario' ||
-        currentUser.rol === 'dueño' ||
-        currentUser.rol === 'Dueño' ||
-        currentUser.rol === 'vendedor' ||
-        currentUser.rol === 'Vendedor' ||
-        currentUser.id === 'super_user_001' ||
-        currentUser.id === 'admin_001'
+    console.log('🔍 [ELIMINAR] Usuario actual:', currentUser);
+    console.log('🔍 [ELIMINAR] Rol:', currentUser?.rol);
+    
+    // Solo administrador, dueño y vendedor pueden eliminar productos (comparar sin case-sensitive)
+    const rolValido = currentUser && currentUser.rol && (
+        currentUser.rol.toLowerCase() === 'administrador' ||
+        currentUser.rol.toLowerCase() === 'super_usuario' || // Compatibilidad con admin antiguo
+        currentUser.rol.toLowerCase() === 'dueño' ||
+        currentUser.rol.toLowerCase() === 'vendedor'
     );
+    
+    console.log('🔍 [ELIMINAR] ¿Rol válido?', rolValido);
     
     if (!rolValido) {
         mostrarMensaje('Error', 'No tienes permisos para eliminar productos.', 'error');
@@ -2683,116 +2722,53 @@ async function eliminarProducto(productoId) {
     }
     
     console.log('✅ Eliminación de producto confirmada');
+    console.log('📋 Información del producto a eliminar:');
+    console.log('   ID:', productoId);
+    console.log('   Nombre:', producto.nombre);
+    console.log('   Imagen:', producto.imagen);
     
     try {
-        // Obtener imagen del producto para eliminar todos los duplicados
-        const imagenProducto = producto.imagen;
-        
-        // Eliminar de localStorage PRIMERO (todos los duplicados)
-        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        console.log(`📦 Total de productos en localStorage: ${productos.length}`);
-        
-        // Encontrar todos los productos con el mismo ID O la misma imagen
-        const productosAEliminar = productos.filter(p => p.id === productoId || p.imagen === imagenProducto);
-        console.log(`🗑️ Productos a eliminar (mismo ID o imagen): ${productosAEliminar.length}`);
-        
-        // Guardar IDs de los productos a eliminar
-        const idsAEliminar = productosAEliminar.map(p => p.id);
-        console.log(`🆔 IDs a eliminar:`, idsAEliminar);
-        
-        // Filtrar productos (eliminar todos los duplicados)
-        const productosActualizados = productos.filter(p => !idsAEliminar.includes(p.id));
-        localStorage.setItem('pincelart_productos', JSON.stringify(productosActualizados));
-        console.log(`✅ ${productosAEliminar.length} producto(s) eliminado(s) de localStorage`);
-        
-        // Eliminar de Firebase (todos los duplicados por ID)
+        // SOLO eliminar de Firebase - el listener se encargará del resto automáticamente
         if (window.firebaseService && window.firebaseService.initialized) {
-            console.log('🔥 Eliminando de Firebase...');
+            console.log(`🔥 Eliminando producto de Firebase: ${productoId}`);
             
-            // Obtener todos los productos de Firebase
-            const resultado = await window.firebaseService.getAllProducts();
-            if (resultado.success) {
-                const productosFirebase = resultado.data;
+            const resultado = await window.firebaseService.deleteProduct(productoId);
+            
+            if (resultado && resultado.success) {
+                console.log(`✅ Producto eliminado correctamente: ${productoId}`);
+                mostrarMensaje('¡Éxito!', 'Producto eliminado exitosamente.', 'success');
                 
-                // Encontrar productos duplicados en Firebase
-                const productosFirebaseAEliminar = productosFirebase.filter(p => 
-                    idsAEliminar.includes(p.id) || p.imagen === imagenProducto
-                );
+                // El listener de Firebase actualizará automáticamente:
+                // - localStorage
+                // - Lista de gestión
+                // - Catálogo
                 
-                console.log(`🔥 Productos a eliminar de Firebase: ${productosFirebaseAEliminar.length}`);
+                console.log('⏳ Esperando sincronización automática del listener...');
+                console.log('⏳ El listener actualizará la lista');
                 
-                // Eliminar cada uno de Firebase
-                for (const productoEliminar of productosFirebaseAEliminar) {
-                    try {
-                        await window.firebaseService.deleteProduct(productoEliminar.id);
-                        console.log(`✅ Eliminado de Firebase: ${productoEliminar.id}`);
-                    } catch (err) {
-                        console.error(`❌ Error eliminando ${productoEliminar.id} de Firebase:`, err);
+                // Fallback: actualizar lista manualmente después de un breve delay
+                setTimeout(() => {
+                    const modal = document.querySelector('.modal-productos');
+                    if (modal) {
+                        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+                        console.log(`🔄 [FALLBACK] Actualizando lista manualmente con ${productos.length} productos`);
+                        actualizarListaDesdeProductos(modal, productos);
                     }
+                }, 500);
+            } else {
+                console.error(`❌ Error eliminando de Firebase:`, resultado);
+                
+                // Si el resultado indica que se eliminó de localStorage
+                if (resultado && resultado.message && resultado.message.includes('localStorage')) {
+                    mostrarMensaje('¡Éxito!', 'Producto eliminado (solo existía localmente).', 'success');
+                } else {
+                    mostrarMensaje('Error', 'No se pudo eliminar el producto.', 'error');
                 }
             }
+        } else {
+            console.warn('⚠️ Firebase no inicializado');
+            mostrarMensaje('Error', 'Firebase no está disponible.', 'error');
         }
-        
-        mostrarMensaje('¡Éxito!', 'Producto eliminado exitosamente.', 'success');
-        
-        // Disparar evento para actualizar catálogo
-        const productosRestantes = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        window.dispatchEvent(new CustomEvent('productos-actualizados', { 
-            detail: { productos: productosRestantes } 
-        }));
-        
-        // Actualizar la lista DESPUÉS de un pequeño delay
-        setTimeout(async () => {
-            const modalProductos = document.querySelector('.modal-productos');
-            if (modalProductos) {
-                const listaDiv = modalProductos.querySelector('#lista-productos');
-                if (listaDiv) {
-                    // Obtener productos actualizados
-                    const productosActualizados = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-                    
-                    // Actualizar productosTodos y filtros
-                    productosTodos = productosActualizados;
-                    
-                    // ACTUALIZAR FILTROS DINÁMICOS CON NUEVAS CATEGORÍAS
-                    const filtrosContainer = modalProductos.querySelector('#filtros-dinamicos');
-                    if (filtrosContainer) {
-                        const categorias = [...new Set(productosActualizados.map(p => p.categoria))];
-                        const todosBtn = filtrosContainer.querySelector('[data-categoria="todos"]');
-                        filtrosContainer.innerHTML = '';
-                        filtrosContainer.appendChild(todosBtn);
-                        
-                        categorias.forEach(categoria => {
-                            const cantidad = productosActualizados.filter(p => p.categoria === categoria).length;
-                            const btn = document.createElement('button');
-                            btn.className = 'filtro-categoria';
-                            btn.dataset.categoria = categoria.toLowerCase();
-                            btn.textContent = `${categoria} (${cantidad})`;
-                            btn.style.cssText = 'padding: 0.5rem 1rem; background: #e0e0e0; color: #333; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;';
-                            btn.addEventListener('click', function() {
-                                const todosLosFiltros = modalProductos.querySelectorAll('.filtro-categoria');
-                                todosLosFiltros.forEach(f => {
-                                    f.style.background = '#e0e0e0';
-                                    f.style.color = '#333';
-                                    f.style.fontWeight = 'normal';
-                                });
-                                this.style.background = '#1976d2';
-                                this.style.color = 'white';
-                                this.style.fontWeight = '600';
-                                filtrarProductosPorCategoria(modalProductos, categoria.toLowerCase());
-                            });
-                            filtrosContainer.appendChild(btn);
-                        });
-                        
-                        console.log('✅ Filtros actualizados después de eliminar');
-                    }
-                    
-                    // Recargar productos desde carpetas locales (actualizado)
-                    await cargarProductosEnModal(modalProductos);
-                    
-                    console.log('✅ Lista de productos actualizada');
-                }
-            }
-        }, 800);
         
     } catch (error) {
         console.error('❌ Error eliminando producto:', error);
@@ -2929,6 +2905,7 @@ async function actualizarProducto(productoId, form) {
             imagen: productoOriginal ? productoOriginal.imagen : ''
         };
         
+        console.log('📝 ID del producto a actualizar:', productoId);
         console.log('📝 Datos del producto actualizado:', productoActualizado);
         
         // Si hay una nueva imagen, procesarla y reemplazar
@@ -2967,30 +2944,6 @@ async function actualizarProducto(productoId, form) {
             console.warn('⚠️ Firebase no está inicializado, guardando solo en localStorage');
         }
         
-        // Obtener productos actuales
-        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        const productoIndex = productos.findIndex(p => p.id === productoId);
-        
-        if (productoIndex === -1) {
-            mostrarMensaje('Error', 'Producto no encontrado.', 'error');
-            return;
-        }
-        
-        // Actualizar el producto existente con los nuevos datos
-        const productoExistente = productos[productoIndex];
-        const productoActualizadoCompleto = {
-            ...productoExistente,
-            ...productoActualizado,
-            id: productoId,
-            // Mantener imagen actual si no hay nueva
-            imagen: productoActualizado.imagen || productoExistente.imagen
-        };
-        
-        // Actualizar en localStorage
-        productos[productoIndex] = productoActualizadoCompleto;
-        localStorage.setItem('pincelart_productos', JSON.stringify(productos));
-        console.log('✅ Producto actualizado en localStorage:', productoActualizadoCompleto);
-        
         mostrarMensaje('¡Éxito!', 'Producto actualizado exitosamente.', 'success');
         
         // Cerrar modal de edición INMEDIATAMENTE
@@ -2999,78 +2952,17 @@ async function actualizarProducto(productoId, form) {
             modalEdicion.remove();
         }
         
-        // Actualizar lista en el modal de gestión INMEDIATAMENT*mabién:
-        const modalGestion = document.querySelector('.modal-productos');
-        if (modalGestion) {
-            // Guardar la categoría DEL PRODUCTO ACTUALIZADO
-            const categoriaDelProductoActualizado = productoActualizadoCompleto.categoria;
-            
-            // Actualizar arrays globales
-            productosTodos = productos;
-            
-            // ACTUALIZAR filtros dinámicamente (elimina categorías vacías, agrega nuevas)
-            actualizarFiltrosCategoriasEnModal(modalGestion, productos);
-            
-            // IMPORTANTE: Filtrar por la categoría DEL PRODUCTO que se acaba de actualizar
-            let productosParaMostrar = [];
-            const categoriasExistentes = [...new Set(productos.map(p => p.categoria.toLowerCase()))];
-            
-            // Si la categoría del producto existe, filtrar por ella
-            if (categoriaDelProductoActualizado && categoriasExistentes.includes(categoriaDelProductoActualizado.toLowerCase())) {
-                productosParaMostrar = productos.filter(p => p.categoria.toLowerCase() === categoriaDelProductoActualizado.toLowerCase());
-                productosFiltradosActuales = productosParaMostrar;
-                
-                console.log(`✅ Filtrando por categoría del producto: ${categoriaDelProductoActualizado}`);
-            } else {
-                // Si no existe esa categoría, mostrar todos
-                productosParaMostrar = productos;
-                productosFiltradosActuales = productos;
-            }
-            
-            // Renderizar lista con productos filtrados
-            renderizarListaProductos(modalGestion, productosParaMostrar);
-            
-            // Activar el filtro de la categoría del producto actualizado
-            setTimeout(() => {
-                const todosLosFiltros = modalGestion.querySelectorAll('.filtro-categoria');
-                let filtroActivado = null;
-                
-                todosLosFiltros.forEach(f => {
-                    f.style.background = '#e0e0e0';
-                    f.style.color = '#333';
-                    f.style.fontWeight = 'normal';
-                    
-                    // Si este filtro coincide con la categoría del producto, activarlo
-                    if (categoriaDelProductoActualizado && 
-                        f.dataset.categoria.toLowerCase() === categoriaDelProductoActualizado.toLowerCase()) {
-                        filtroActivado = f;
-                    }
-                });
-                
-                // Activar el filtro correcto
-                if (filtroActivado) {
-                    filtroActivado.style.background = '#1976d2';
-                    filtroActivado.style.color = 'white';
-                    filtroActivado.style.fontWeight = '600';
-                    console.log(`✅ Filtro activado: ${filtroActivado.dataset.categoria}`);
-                } else {
-                    // Si no hay filtro para esa categoría, activar "Todos"
-                    const todosBtn = modalGestion.querySelector('[data-categoria="todos"]');
-                    if (todosBtn) {
-                        todosBtn.style.background = '#1976d2';
-                        todosBtn.style.color = 'white';
-                        todosBtn.style.fontWeight = '600';
-                    }
-                }
-            }, 50);
-        }
+        // NO actualizar localStorage manualmente ni disparar eventos manuales
+        // El listener de Firebase se encargará de sincronizar automáticamente:
+        // 1. Actualizará localStorage con los datos de Firebase (correctos)
+        // 2. Disparará el evento productos-actualizados con los datos correctos
+        // 3. Actualizará la lista de gestión de productos
+        // 4. Actualizará el catálogo público
         
-        // Disparar evento para actualizar catálogo en tiempo real
-        window.dispatchEvent(new CustomEvent('productos-actualizados', { 
-            detail: { productos } 
-        }));
+        console.log('⏳ Esperando sincronización automática del listener...');
+        console.log('✅ NO hacer nada más - el listener actualizará TODO correctamente');
         
-        // Limpiar formulario pero mantener modal abierto
+        // Limpiar formulario
         form.reset();
         
     } catch (error) {
@@ -3177,6 +3069,151 @@ function mostrarAgregarProducto() {
     console.log('✅ Modal de crear producto mostrado');
 }
 
+// FUNCIÓN ATOMIC PARA MATAR EL CARGADOR
+// USAR EN CONSOLA: matarCargador()
+window.matarCargador = async function() {
+    console.log('💀 MATANDO CARGADOR...');
+    
+    // 1. ELIMINAR DE LOCALSTORAGE DIRECTO
+    let productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+    const antes = productos.length;
+    productos = productos.filter(p => !(p.nombre && p.nombre.toLowerCase().includes('cargador')));
+    const despues = productos.length;
+    
+    if (antes !== despues) {
+        console.log(`✅ Eliminado de localStorage: ${antes - despues} producto(s)`);
+        localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+    }
+    
+    // 2. BUSCAR Y ELIMINAR DE FIREBASE
+    if (window.firebaseService && window.firebaseService.initialized) {
+        const resultado = await window.firebaseService.getAllProducts();
+        if (resultado.success && resultado.data) {
+            const cargadores = resultado.data.filter(p => 
+                p.nombre && p.nombre.toLowerCase().includes('cargador')
+            );
+            
+            console.log(`🔥 Cargadores en Firebase: ${cargadores.length}`);
+            
+            for (const cargador of cargadores) {
+                console.log(`💀 Eliminando cargador de Firebase: ${cargador.id}`);
+                await window.firebaseService.deleteProduct(cargador.id);
+            }
+        }
+    }
+    
+    // 3. FORZAR RECARGA DE LA PÁGINA
+    console.log('💀 Recargando página...');
+    location.reload();
+};
+
+// FUNCIÓN GLOBAL PARA FORZAR LIMPIEZA TOTAL Y SINCRONIZACIÓN CON FIREBASE
+// USAR EN CONSOLA: forzarLimpiezaTotal()
+window.forzarLimpiezaTotal = async function() {
+    console.log('🚨 LIMPIEZA TOTAL FORZADA...');
+    
+    if (!window.firebaseService || !window.firebaseService.initialized) {
+        console.error('❌ Firebase no está disponible');
+        return;
+    }
+    
+    // 1. Obtener TODOS los productos de Firebase
+    console.log('🔥 Obteniendo productos de Firebase...');
+    const resultado = await window.firebaseService.getAllProducts();
+    
+    if (!resultado.success) {
+        console.error('❌ Error obteniendo productos de Firebase');
+        return;
+    }
+    
+    const productosFirebase = resultado.data;
+    console.log(`🔥 Productos en Firebase: ${productosFirebase.length}`);
+    
+    // 2. Buscar el cargador específicamente y eliminarlo de Firebase
+    const cargador = productosFirebase.find(p => 
+        p.nombre && p.nombre.toLowerCase().includes('cargador')
+    );
+    
+    if (cargador) {
+        console.log('🗑️ CARGADOR ENCONTRADO EN FIREBASE:', cargador);
+        console.log('🗑️ ID:', cargador.id);
+        
+        // Eliminar de Firebase
+        const resultadoDelete = await window.firebaseService.deleteProduct(cargador.id);
+        console.log('🗑️ Resultado eliminación:', resultadoDelete);
+        
+        // Esperar 1 segundo para que se sincronice
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    // 3. Limpiar localStorage completamente
+    console.log('🧹 Limpiando localStorage...');
+    localStorage.removeItem('pincelart_productos');
+    
+    // 4. Obtener productos actualizados de Firebase (sin el cargador)
+    const resultadoActualizado = await window.firebaseService.getAllProducts();
+    const productosFinales = resultadoActualizado.data;
+    
+    console.log(`📦 Productos después de limpieza: ${productosFinales.length}`);
+    
+    // 5. Guardar en localStorage solo lo que está en Firebase
+    localStorage.setItem('pincelart_productos', JSON.stringify(productosFinales));
+    
+    // 6. Recargar la interfaz
+    const modalGestion = document.querySelector('.modal-productos');
+    if (modalGestion) {
+        console.log('🔄 Recargando interfaz...');
+        await cargarProductosEnModal(modalGestion);
+    } else {
+        console.log('⚠️ Modal de gestión no encontrado. Recarga la página manualmente.');
+        alert('Limpieza completada. Por favor recarga la página (F5).');
+    }
+    
+    console.log('✅ LIMPIEZA TOTAL COMPLETADA');
+};
+
+// FUNCIÓN GLOBAL PARA LIMPIAR PRODUCTOS HUÉRFANOS (SOLO PARA DEBUG)
+// USAR EN CONSOLA: limpiarProductosHuerfanos()
+window.limpiarProductosHuerfanos = async function() {
+    console.log('🧹 LIMPIEZA FORZADA DE PRODUCTOS HUÉRFANOS...');
+    
+    const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+    console.log(`📦 Productos en localStorage: ${productos.length}`);
+    
+    // Obtener productos de Firebase
+    if (window.firebaseService && window.firebaseService.initialized) {
+        const resultado = await window.firebaseService.getAllProducts();
+        
+        if (resultado.success) {
+            const productosFirebase = resultado.data;
+            const idsFirebase = new Set(productosFirebase.map(p => p.id));
+            
+            console.log(`🔥 Productos en Firebase: ${productosFirebase.length}`);
+            
+            // Filtrar productos que NO están en Firebase
+            const productosHuerfanos = productos.filter(p => !idsFirebase.has(p.id));
+            console.log(`🗑️ Productos huérfanos encontrados: ${productosHuerfanos.length}`);
+            
+            if (productosHuerfanos.length > 0) {
+                console.log('🗑️ Eliminando:', productosHuerfanos.map(p => `${p.nombre} (${p.id})`));
+                
+                // Actualizar localStorage solo con productos de Firebase
+                localStorage.setItem('pincelart_productos', JSON.stringify(productosFirebase));
+                
+                // Recargar la lista
+                const modalGestion = document.querySelector('.modal-productos');
+                if (modalGestion) {
+                    actualizarListaDesdeProductos(modalGestion, productosFirebase);
+                }
+                
+                console.log('✅ Limpieza completada');
+            } else {
+                console.log('✅ No hay productos huérfanos');
+            }
+        }
+    }
+};
+
 // Función para crear nuevo producto
 async function crearProducto(form) {
     try {
@@ -3234,95 +3271,166 @@ async function crearProducto(form) {
             nuevoProducto.imagen = 'images/Logo/logo-pincelart.jpg'; // Imagen por defecto
         }
         
-        // Guardar en localStorage
-        const productos = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-        productos.push(nuevoProducto);
-        localStorage.setItem('pincelart_productos', JSON.stringify(productos));
-        console.log('✅ Producto guardado en localStorage');
-        
-        // Intentar guardar en Firebase
+        // Guardar SOLO en Firebase - el listener se encargará de actualizar localStorage
         if (window.firebaseService && window.firebaseService.initialized) {
-            try {
-                await window.firebaseService.addProduct(nuevoProducto);
-                console.log('✅ Producto guardado en Firebase');
-            } catch (error) {
-                console.warn('⚠️ Error guardando en Firebase:', error);
+            console.log('🔥 Guardando producto en Firebase con ID:', nuevoProducto.id);
+            const resultado = await window.firebaseService.addProduct(nuevoProducto);
+            
+            if (resultado && resultado.success) {
+                console.log('✅ Producto guardado en Firebase con ID:', nuevoProducto.id);
+            } else {
+                console.error('❌ Error guardando en Firebase:', resultado);
+                mostrarMensaje('Error', 'No se pudo guardar el producto en Firebase.', 'error');
+                return;
             }
+        } else {
+            mostrarMensaje('Error', 'Firebase no está disponible. No se puede crear el producto.', 'error');
+            return;
         }
         
         mostrarMensaje('¡Éxito!', 'Producto creado exitosamente.', 'success');
         
-        console.log('📦 Total productos después de crear:', productos.length);
         console.log('🆕 Producto creado:', nuevoProducto.nombre, 'en categoría:', nuevoProducto.categoria);
         
         // Cerrar modal de crear
         document.querySelector('.modal-crear-producto').remove();
         
-        // Abrir automáticamente Gestión de Productos
-        let modalGestion = document.querySelector('.modal-productos');
-        if (!modalGestion) {
-            console.log('🔄 Abriendo Gestión de Productos automáticamente...');
-            await mostrarGestionProductos();
-            modalGestion = document.querySelector('.modal-productos');
-            
-            // Esperar un momento para que el modal se renderice
-            await new Promise(resolve => setTimeout(resolve, 500));
-        }
+        // NO调用手动reload - el listener de Firebase se encargará de todo
+        // El listener actualizará automáticamente:
+        // 1. localStorage
+        // 2. Lista de gestión de productos (con nueva categoría si aplica)
+        // 3. Catálogo público
         
-        // Recargar la lista de productos COMPLETAMENTE
-        if (modalGestion) {
-            console.log('🔄 Recargando lista de productos...');
-            await cargarProductosEnModal(modalGestion);
-            
-            // Actualizar variables globales
-            productosTodos = productos;
-            productosFiltradosActuales = productos;
-            
-            // CAMBIAR FILTRO A "TODOS" para mostrar el nuevo producto
-            setTimeout(() => {
-                const filtroTodos = modalGestion.querySelector('.filtro-categoria[data-categoria="todos"]');
-                if (filtroTodos) {
-                    console.log('✅ Cambiando filtro a "Todos" para mostrar nuevo producto...');
-                    
-                    // Aplicar estilo activo manualmente
-                    const todosLosFiltros = modalGestion.querySelectorAll('.filtro-categoria');
-                    todosLosFiltros.forEach(f => {
-                        f.style.background = '#e0e0e0';
-                        f.style.color = '#333';
-                        f.style.fontWeight = 'normal';
-                    });
-                    filtroTodos.style.background = '#1976d2';
-                    filtroTodos.style.color = 'white';
-                    filtroTodos.style.fontWeight = '600';
-                    
-                    // Filtrar productos
-                    filtrarProductosPorCategoria(modalGestion, 'todos');
-                }
-            }, 100);
-            
-            // Renderizar TODOS los productos
-            renderizarListaProductos(modalGestion, productos);
-            
-            // Hacer scroll al final para ver el nuevo producto
-            const listaProductos = modalGestion.querySelector('#lista-productos');
-            if (listaProductos) {
-                setTimeout(() => {
-                    listaProductos.scrollTop = listaProductos.scrollHeight;
-                }, 100);
-            }
-            
-            console.log('✅ Lista actualizada con', productos.length, 'productos');
-        }
-        
-        // Disparar evento para actualizar catálogo
-        window.dispatchEvent(new CustomEvent('productos-actualizados', { 
-            detail: { productos } 
-        }));
-        
-        console.log('✅ Producto creado y eventos disparados');
+        console.log('⏳ Esperando sincronización automática del listener...');
         
     } catch (error) {
         console.error('❌ Error creando producto:', error);
         mostrarMensaje('Error', 'Ocurrió un error al crear el producto.', 'error');
     }
 }
+
+// ====================================
+// FUNCIÓN DE DEBUG: ELIMINAR CARGADOR
+// ====================================
+async function forzarEliminacionCargador() {
+    console.log('🔨 FORZANDO ELIMINACIÓN DEL CARGADOR...');
+    
+    if (!window.firebaseService || !window.firebaseService.initialized) {
+        console.error('❌ Firebase no está inicializado');
+        return;
+    }
+    
+                // Buscar productos duplicados
+                const allProducts = await window.firebaseService.db.collection('productos').get();
+                console.log('🔍 [ELIMINAR] Total productos en Firebase:', allProducts.size);
+                
+                // Agrupar por ID para detectar duplicados
+                const productosPorId = {};
+                allProducts.forEach(doc => {
+                    const data = doc.data();
+                    if (!productosPorId[doc.id]) {
+                        productosPorId[doc.id] = [];
+                    }
+                    productosPorId[doc.id].push({docId: doc.id, data});
+                });
+                
+                // Encontrar IDs duplicadas
+                const idsDuplicadas = Object.keys(productosPorId).filter(id => productosPorId[id].length > 1);
+                console.log('🔍 [ELIMINAR] IDs con múltiples documentos:', idsDuplicadas);
+                
+                // Buscar todos los productos con nombre "pocillo"
+    
+    console.log(`🔍 Buscando cargador entre ${allProducts.size} productos...`);
+    
+    let eliminados = 0;
+    for (const doc of allProducts.docs) {
+        const data = doc.data();
+        if (data.nombre && data.nombre.toLowerCase().includes('cargador')) {
+            console.log(`🗑️ ELIMINANDO: ${doc.id} - ${data.nombre}`);
+            try {
+                await window.firebaseService.db.collection('productos').doc(doc.id).delete();
+                console.log(`✅ ELIMINADO CORRECTAMENTE: ${doc.id}`);
+                eliminados++;
+            } catch (error) {
+                console.error(`❌ Error eliminando ${doc.id}:`, error);
+            }
+        }
+    }
+    
+    console.log(`✅ Eliminación forzada completada. ${eliminados} productos eliminados. Recargando página...`);
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// ====================================
+// FUNCIÓN DE DEBUG: LISTAR POCILLOS
+// ====================================
+async function listarPocillos() {
+    console.log('🔍 LISTANDO TODOS LOS POCCILOS...');
+    
+    if (!window.firebaseService || !window.firebaseService.initialized) {
+        console.error('❌ Firebase no está inicializado');
+        return;
+    }
+    
+    const allProducts = await window.firebaseService.db.collection('productos').get();
+    const pocillos = [];
+    
+    for (const doc of allProducts.docs) {
+        const data = doc.data();
+        if (data.nombre && data.nombre.toLowerCase().includes('pocillo')) {
+            pocillos.push({
+                docId: doc.id,
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                categoria: data.categoria
+            });
+        }
+    }
+    
+    console.log(`📊 Total pocillos encontrados: ${pocillos.length}`);
+    pocillos.forEach((p, index) => {
+        console.log(`${index + 1}. ID: ${p.docId} - ${p.nombre} (${p.descripcion})`);
+    });
+    
+    return pocillos;
+}
+
+// ====================================
+// FUNCIÓN DE DEBUG: ELIMINAR POCILLOS DUPLICADOS
+// ====================================
+async function eliminarPocillosDuplicados() {
+    console.log('🗑️ ELIMINANDO POCCILOS DUPLICADOS...');
+    
+    if (!window.firebaseService || !window.firebaseService.initialized) {
+        console.error('❌ Firebase no está inicializado');
+        return;
+    }
+    
+    // IDs de pocillos duplicados (IDs aleatorios de Firebase, no los correctos)
+    const idsDuplicados = ['E2NRtRV7UOItrUPAncFv', 'tqHzRoWsViJGgcWFJpmf', 'w6tHOp2SIPbDCMm5ZnnH', 'yQ8wbxjZq6bWRPvoYylj'];
+    
+    let eliminados = 0;
+    for (const docId of idsDuplicados) {
+        try {
+            console.log(`🗑️ Eliminando pocillo duplicado: ${docId}`);
+            await window.firebaseService.db.collection('productos').doc(docId).delete();
+            console.log(`✅ Eliminado: ${docId}`);
+            eliminados++;
+        } catch (error) {
+            console.error(`❌ Error eliminando ${docId}:`, error);
+        }
+    }
+    
+    console.log(`✅ ${eliminados} pocillos duplicados eliminados. Recargando...`);
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Exportar para uso desde consola
+window.forzarEliminacionCargador = forzarEliminacionCargador;
+window.listarPocillos = listarPocillos;
+window.eliminarPocillosDuplicados = eliminarPocillosDuplicados;

@@ -185,16 +185,24 @@ class FirebaseService {
     }
 
     async getAllProducts() {
+        console.log('🔥 [GETALL] getAllProducts llamado');
+        
         if (!this.initialized) {
+            console.log('⚠️ [GETALL] Firebase no inicializado, usando localStorage');
             return this.getAllProductsLocalStorage();
         }
 
         try {
+            console.log('🔥 [GETALL] Obteniendo productos de Firebase...');
             const productsSnapshot = await this.db.collection('productos').orderBy('fechaCreacion', 'desc').get();
             const products = [];
             productsSnapshot.forEach(doc => {
-                products.push({ id: doc.id, ...doc.data() });
+                const productData = doc.data();
+                // CRÍTICO: Sobrescribir el ID con el ID del documento
+                products.push({ ...productData, id: doc.id });
             });
+            console.log(`🔥 [GETALL] Productos obtenidos de Firebase: ${products.length}`);
+            console.log(`🔥 [GETALL] IDs de productos:`, products.map(p => p.id));
             return { success: true, data: products };
         } catch (error) {
             console.error('❌ Error obteniendo productos de Firebase:', error);
@@ -203,13 +211,24 @@ class FirebaseService {
     }
 
     async addProduct(producto) {
+        // SOLO Firebase - no usar localStorage como fallback
         if (!this.initialized) {
-            return this.saveProductLocalStorage(producto);
+            console.error('❌ Firebase no inicializado - no se puede crear producto');
+            return { success: false, error: 'Firebase no está disponible' };
         }
 
         try {
-            // Si el producto ya tiene un ID, usarlo; si no, crear uno nuevo
+            // CRÍTICO: Usar el ID que viene en el producto
             const productoId = producto.id || this.db.collection('productos').doc().id;
+            
+            console.log(`🔥 [CREATE] Creando producto en Firebase con ID vamos a usar: ${productoId}`);
+            console.log(`📋 [CREATE] Datos del producto:`, {
+                id: productoId,
+                nombre: producto.nombre,
+                categoria: producto.categoria,
+                estado: producto.estado
+            });
+            console.log(`🔍 [CREATE] ID del producto: "${producto.id}", ID del documento: "${productoId}"`);
             
             // Guardar en Firebase con el ID especificado
             await this.db.collection('productos').doc(productoId).set({
@@ -219,11 +238,15 @@ class FirebaseService {
                 fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            console.log('✅ Producto agregado en Firebase con ID:', productoId);
+            console.log(`✅ [CREATE] Producto agregado en Firebase con ID: ${productoId}`);
+            
+            // El listener de Firebase actualizará localStorage automáticamente
+            
             return { success: true, id: productoId };
         } catch (error) {
-            console.error('❌ Error agregando producto a Firebase:', error);
-            return this.saveProductLocalStorage(producto);
+            console.error('❌ [CREATE] Error agregando producto a Firebase:', error);
+            console.error('❌ [CREATE] Stack:', error.stack);
+            return { success: false, error: error.message };
         }
     }
 
@@ -248,38 +271,67 @@ class FirebaseService {
     }
 
     async updateProduct(productId, datosActualizados) {
+        console.log('✏️ [UPDATE] Firebase updateProduct llamado con ID:', productId);
+        console.log('✏️ [UPDATE] Tipo de ID:', typeof productId);
+        console.log('✏️ [UPDATE] Datos a actualizar:', datosActualizados);
+        
+        // SOLO Firebase - no usar localStorage
         if (!this.initialized) {
-            const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
-            const productIndex = products.findIndex(p => p.id === productId);
-            if (productIndex !== -1) {
-                products[productIndex] = { ...products[productIndex], ...datosActualizados };
-                localStorage.setItem('pincelart_productos', JSON.stringify(products));
-                return { success: true };
-            }
-            return { success: false, error: 'Producto no encontrado' };
+            console.error('❌ [UPDATE] Firebase no inicializado - no se puede actualizar producto');
+            return { success: false, error: 'Firebase no está disponible' };
         }
 
         try {
             const docRef = this.db.collection('productos').doc(productId);
+            console.log(`🔍 [UPDATE] Referencia del documento: productos/${productId}`);
             
-            // Usar set con merge para crear o actualizar
-            await docRef.set({
-                ...datosActualizados,
-                fechaActualizacion: new Date().toISOString()
-            }, { merge: true });
+            // Obtener los datos completos del producto actual
+            const docSnap = await docRef.get();
+            let datosCompletos = {};
             
-            console.log('✅ Producto actualizado/creado en Firebase:', productId);
+            if (docSnap.exists) {
+                // Si existe, ACTUALIZAR solo los campos que cambiaron
+                console.log('📋 [UPDATE] Producto encontrado en Firebase, actualizando SOLO campos modificados...');
+                console.log('📋 [UPDATE] Datos actuales en Firebase:', docSnap.data());
+                
+                // IMPORTANTE: NO incluir el campo 'id' en la actualización para evitar crear duplicados
+                const { id, ...datosSinId } = datosActualizados;
+                
+                // Usar UPDATE para solo modificar los campos específicos (sin el ID)
+                const datosUpdate = {
+                    ...datosSinId,
+                    fechaActualizacion: new Date().toISOString()
+                };
+                
+                console.log('📦 [UPDATE] Datos a actualizar SOLO (sin ID):', datosUpdate);
+                
+                await docRef.update(datosUpdate);
+                console.log(`✅ [UPDATE] Producto ACTUALIZADO en Firebase: ${productId}`);
+            } else {
+                // Si no existe, NO crear nuevo para evitar duplicados
+                console.error('❌ [UPDATE] Producto NO existe en Firebase con ID:', productId);
+                console.error('❌ [UPDATE] NO se creará un duplicado. El producto debe existir antes de poder actualizarlo.');
+                return { success: false, error: 'Producto no encontrado en Firebase' };
+            }
             
-            // Devolver éxito
+            // NO actualizar localStorage manualmente
+            // El listener onSnapshot se encargará de sincronizar automáticamente
+            
             return { success: true };
         } catch (error) {
-            console.error('❌ Error actualizando producto:', error);
+            console.error('❌ [UPDATE] Error actualizando producto:', error);
+            console.error('❌ [UPDATE] Stack:', error.stack);
             return { success: false, error: error.message };
         }
     }
 
     async deleteProduct(productId) {
+        console.log('🗑️ Firebase deleteProduct llamado con ID:', productId);
+        console.log('🔍 Tipo de ID:', typeof productId);
+        console.log('🔍 ID específico:', JSON.stringify(productId));
+        
         if (!this.initialized) {
+            console.log('⚠️ Firebase no inicializado, eliminando solo de localStorage');
             const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
             const productsActualizados = products.filter(p => p.id !== productId);
             localStorage.setItem('pincelart_productos', JSON.stringify(productsActualizados));
@@ -287,11 +339,62 @@ class FirebaseService {
         }
 
         try {
-            await this.db.collection('productos').doc(productId).delete();
-            console.log('✅ Producto eliminado:', productId);
+            console.log(`🔥 [DELETE] Intentando eliminar documento: productos/${productId}`);
+            
+            const docRef = this.db.collection('productos').doc(productId);
+            
+            // Verificar si el documento existe antes de eliminar
+            const docSnapshot = await docRef.get();
+            console.log(`📋 [DELETE] ¿Documento existe?:`, docSnapshot.exists);
+            
+            if (!docSnapshot.exists) {
+                console.warn(`⚠️ [DELETE] El documento ${productId} no existe en Firebase`);
+                console.log('🔍 [DELETE] Buscando el documento por nombre...');
+                
+                // Intentar buscar por nombre
+                const allProducts = await this.db.collection('productos').get();
+                allProducts.forEach(doc => {
+                    const data = doc.data();
+                    if (data.nombre && data.nombre.toLowerCase().includes('cargador')) {
+                        console.log(`🔍 [DELETE] Encontrado por nombre: ${doc.id} - ${data.nombre}`);
+                    }
+                });
+                
+                console.log('🔄 [DELETE] Eliminando solo de localStorage...');
+                
+                // Si no existe en Firebase, eliminar de localStorage
+                const products = JSON.parse(localStorage.getItem('pincelart_productos')) || [];
+                console.log(`📦 [DELETE] Productos en localStorage: ${products.length}`);
+                
+                const productsActualizados = products.filter(p => p.id !== productId);
+                console.log(`📦 [DELETE] Productos después de filtrar: ${productsActualizados.length}`);
+                
+                localStorage.setItem('pincelart_productos', JSON.stringify(productsActualizados));
+                console.log('✅ [DELETE] Producto eliminado de localStorage');
+                
+                // Disparar evento para actualizar la UI
+                window.dispatchEvent(new CustomEvent('productos-actualizados', { 
+                    detail: { productos: productsActualizados } 
+                }));
+                console.log(`📢 [DELETE] Evento productos-actualizados disparado con ${productsActualizados.length} productos`);
+                
+                return { success: true, message: 'Eliminado de localStorage (no existía en Firebase)' };
+            }
+            
+            console.log(`📋 [DELETE] Datos del documento antes de eliminar:`, docSnapshot.data());
+            
+            // SI EXISTE EN FIREBASE, ELIMINAR FORZOSAMENTE
+            console.log(`🔥 [DELETE] ELIMINANDO FORZADAMENTE DE FIREBASE...`);
+            
+            await docRef.delete();
+            console.log(`✅ [DELETE] Documento eliminado exitosamente de Firebase: ${productId}`);
+            
+            // El listener de Firebase se encargará de actualizar localStorage automáticamente
+            
             return { success: true };
         } catch (error) {
-            console.error('❌ Error eliminando producto:', error);
+            console.error(`❌ [DELETE] Error eliminando producto ${productId}:`, error);
+            console.error(`❌ [DELETE] Stack trace:`, error.stack);
             return { success: false, error: error.message };
         }
     }
@@ -317,13 +420,38 @@ class FirebaseService {
             this.db.collection('productos').onSnapshot(
                 (snapshot) => {
                     console.log('🔥 Cambio detectado en Firebase productos');
-                    const productos = [];
-                    snapshot.forEach(doc => {
-                        productos.push({ id: doc.id, ...doc.data() });
+                    
+                    // Ver cambios específicos (agregados, modificados, eliminados)
+                    const cambiosDetectados = snapshot.docChanges();
+                    console.log(`📊 Total cambios detectados: ${cambiosDetectados.length}`);
+                    
+                    cambiosDetectados.forEach((change, index) => {
+                        console.log(`📊 Cambio ${index + 1}: tipo=${change.type}, id=${change.doc.id}`);
+                        if (change.type === 'added') {
+                            console.log('➕ Producto agregado:', change.doc.id);
+                        } else if (change.type === 'modified') {
+                            console.log('✏️ Producto modificado:', change.doc.id);
+                        } else if (change.type === 'removed') {
+                            console.log('🗑️ Producto eliminado:', change.doc.id);
+                            console.log('   Datos eliminados:', change.doc.data());
+                        }
                     });
                     
-                    // Actualizar localStorage
+                    const productos = [];
+                    snapshot.forEach(doc => {
+                        const productData = doc.data();
+                        // CRÍTICO: Usar el ID del documento como fuente de verdad
+                        // Sobrescribir cualquier campo 'id' que venga en los datos
+                        const producto = { ...productData, id: doc.id };
+                        productos.push(producto);
+                    });
+                    
+                    console.log(`📦 Total productos en Firebase: ${productos.length}`);
+                    console.log(`📦 IDs de productos en Firebase:`, productos.map(p => `${p.nombre}(${p.id})`));
+                    
+                    // Actualizar localStorage con los productos de Firebase
                     localStorage.setItem('pincelart_productos', JSON.stringify(productos));
+                    console.log('✅ localStorage actualizado con productos de Firebase');
                     
                     // Disparar evento personalizado
                     window.dispatchEvent(new CustomEvent('productos-actualizados', { 
